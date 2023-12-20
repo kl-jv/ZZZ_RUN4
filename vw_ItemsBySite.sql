@@ -1,7 +1,7 @@
 USE [ZZZ_RUN4]
 GO
 
-/****** Object:  View [dbo].[vw_ItemsBySite]    Script Date: 20/12/2023 11:40:41 ******/
+/****** Object:  View [dbo].[vw_ItemsBySite]    Script Date: 20/12/2023 10:35:51 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -9,7 +9,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-ALTER VIEW [dbo].[vw_ItemsBySite] AS
+-- ALTER VIEW [dbo].[vw_ItemsBySite] AS
 
 /* UNION SELECTION IT.POV.01 */
 
@@ -608,14 +608,53 @@ SELECT
 	,10 AS OrderingTimeUnit									/*Ordering - Time Unit for OrderInterval, SafetyTime (tcibd250.oivu, tcibd250.tuni) (Will set "Use Global Item" to no when value <> 99)	| FALSE	| Byte |5;Hours;10;Days;99;"Inherit from Item (defaults)" | */
 	,CAST(1 AS FLOAT) AS OrderInterval										/*Ordering - Order Interval  (tcibd250.oint) (HYVA) | FALSE | 0 |  | |*/
 	,CAST(kpp.SafetyStock AS FLOAT) AS SafetyStock						/*Ordering - Safety Stock (tcibd250.sfst)  (HYVA) | FALSE | 0 |  | |*/
-	,CAST(kpp.SafetyTime AS FLOAT) AS SafetyTime			/*Ordering - Safety Time (tcibd250.sftm) (HYVA) | FALSE | 0 |  | |*/
-	,CAST(CASE WHEN pla.GE_QTA_MULT_RIOR = 0 THEN 1 ELSE GE_QTA_MULT_RIOR END AS FLOAT) AS OrderQuantityIncrement
+
+
+
+--	,CAST(kpp.SafetyTime AS FLOAT) AS SafetyTime			/*Ordering - Safety Time (tcibd250.sftm) (HYVA) | FALSE | 0 |  | |*/
+
+/*	20-12-2023 KL : Adjustements requested by Belinda
+	For supply source "distribution" (60 ) */
+	,CAST (
+	    CASE
+	        WHEN kpp.SupplySource = 60 THEN 0
+	        ELSE kpp.SafetyTime
+	   END AS FLOAT
+	) AS SafetyTime
+
+
+-- 	,CAST(CASE WHEN pla.GE_QTA_MULT_RIOR = 0 THEN 1 ELSE GE_QTA_MULT_RIOR END AS FLOAT) AS OrderQuantityIncrement
 															/*Ordering - Order Quantity Increment (tcibd250.oqmf) (HYVA) | FALSE | 1 |  | |*/
-	,CAST(CASE WHEN pla.GE_QTA_MIN_RIOR = 0 THEN 1 ELSE pla.GE_QTA_MIN_RIOR END AS FLOAT) AS MinimumOrderQuantity			
+	, CAST (
+	    CASE
+			WHEN pla.GE_QTA_MULT_RIOR = 0 OR kpp.SupplySource = 60 THEN 1
+			ELSE pla.GE_QTA_MULT_RIOR
+		END AS FLOAT
+	) AS OrderQuantityIncrement
+
+
+--	,CAST(CASE WHEN pla.GE_QTA_MIN_RIOR = 0 THEN 1 ELSE pla.GE_QTA_MIN_RIOR END AS FLOAT) AS MinimumOrderQuantity			
 															/*Ordering - Minimum Order Quantity (tcibd250.mioq) (HYVA) | FALSE | 0 |  | |*/
-	,CAST(CASE WHEN pla.GE_QTA_MAX_RIOR = 0 THEN 99999999.99 ELSE pla.GE_QTA_MAX_RIOR END AS FLOAT) AS MaximumOrderQuantity
+
+	,CAST(													/*Ordering - Minimum Order Quantity (tcibd250.mioq) (HYVA) | FALSE | 0 |  | |*/
+		CASE 
+			WHEN pla.GE_QTA_MIN_RIOR = 0  OR kpp.SupplySource = 60 THEN 1 
+			ELSE pla.GE_QTA_MIN_RIOR 
+		END AS FLOAT) AS MinimumOrderQuantity	
+
+--	,CAST(CASE WHEN pla.GE_QTA_MAX_RIOR = 0 THEN 99999999.99 ELSE pla.GE_QTA_MAX_RIOR END AS FLOAT) AS MaximumOrderQuantity
 															/*Ordering - Maximum Order Quantity (tcibd250.maoq) (HYVA) | FALSE | 99999999.99 |  | <100000000|*/
+
+	,CAST(													/*Ordering - Maximum Order Quantity (tcibd250.maoq) (HYVA) | FALSE | 99999999.99 |  | <100000000|*/
+		CASE 
+			WHEN pla.GE_QTA_MAX_RIOR = 0 OR kpp.SupplySource = 60 THEN 99999999.99 
+			ELSE pla.GE_QTA_MAX_RIOR 
+		END AS FLOAT) AS MaximumOrderQuantity
+	
+	
 	,1 AS FixedOrderQuantity								/*Ordering - Fixed Order Quantity (tcibd250.fioq) (HYVA) | FALSE | 1 |  | |*/
+
+
 	,CAST(CASE WHEN pla.GE_LOTTO_APPR >0 THEN pla.GE_LOTTO_APPR ELSE 1 END AS FLOAT) AS EconomicOrderQuantity
 															/*Ordering - Economic Order Quantity (tcibd250.ecoq) (HYVA) | FALSE | 1 |  | |*/
 	,0 AS ReorderPoint										/*Ordering - Reorder Point (tcibd250.reop) (HYVA) | FALSE | 0 |  | |*/
