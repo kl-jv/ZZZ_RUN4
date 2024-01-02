@@ -1,7 +1,10 @@
 USE [ZZZ_RUN4]
 GO
 
-/****** Object:  View [dbo].[vw_ItemsBySite]    Script Date: 20/12/2023 15:14 ******/
+/****** Object:  View [dbo].[vw_ItemsBySite]    Script Date: 02/01/2024 12:29:53 ******/
+
+/* 02-01-2024 :  Request from belinda:  for POV.03  When SupplySource = 60 them SafetyTime 0  */ 
+
 SET ANSI_NULLS ON
 GO
 
@@ -9,7 +12,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
--- ALTER VIEW [dbo].[vw_ItemsBySite] AS
+
+ALTER VIEW [dbo].[vw_ItemsBySite] AS
 
 /* UNION SELECTION IT.POV.01 */
 
@@ -613,8 +617,8 @@ SELECT
 
 --	,CAST(kpp.SafetyTime AS FLOAT) AS SafetyTime			/*Ordering - Safety Time (tcibd250.sftm) (HYVA) | FALSE | 0 |  | |*/
 
-/*	20-12-2023 KL : Adjustements requested by Belinda
-	For supply source "distribution" (60 ) */
+/*	20-12-2023 KL : Adjustements requested by Belinda for SupplySource 60 */ 
+
 	,CAST (
 	    CASE
 	        WHEN kpp.SupplySource = 60 THEN 0
