@@ -11,7 +11,7 @@ GO
 
 
 
- ALTER VIEW [dbo].[vw_AlternativeItems] AS
+ -- ALTER VIEW [dbo].[vw_AlternativeItems] AS
 
 
 SELECT
