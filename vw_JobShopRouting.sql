@@ -16,7 +16,8 @@ SELECT
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS ManufacturedProject						/*Project (mitm)   - Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(NULL AS VARCHAR(38)) AS ManufacturedItem		         			    /*Manufactured Item (mitm)   - References tiipd001 Item Production Data | TRUE | null | 38 | |*/
 	,'IT.' + RIGHT(('000000' + CAST((ROW_NUMBER() OVER(ORDER BY (CAST(kps.ItemLnCE AS VARCHAR(38))) ASC)) AS VARCHAR(6))),6) AS Routing  	/*Routing (rouc) | TRUE | null | 9 | |*/
-	,'000001' AS Revision
+/* 30-01-2023 KL : Not New field Revision in template 202310 was already in april template */
+	,CAST('000001' AS VARCHAR(6)) AS Revision	
 	,10 AS Status																/*Status (rost)  When loading with DAL, use status 10 (new) and approve as post conversion action. | FALSE | 20 |  | 10;"New";20;"Approved";30;"Expired"|*/
 	,CAST('2023/01/01 00:00:00' AS SMALLDATETIME) AS EffectiveDate				/*Effective Date (efdt) | FALSE | null |  | |*/
 	,CAST(NULL AS SMALLDATETIME) AS ExpiryDate									/*Expiry Date (exdt) - When empty, date will be set to MAX | TRUE | null |  | |*/
@@ -78,16 +79,17 @@ UNION ALL
 SELECT
 	 'IT.POV.03' AS [Site]														/*Site (site) - Reference to tcemm050 Sites                                                                                     Infor LN table: tirou400 | TRUE | null | 9 | |*/
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS ManufacturedProject						/*Project (mitm)   - Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
-	,CAST(kps.ItemlnCE AS VARCHAR(38)) AS ManufacturedItem		         			    /*Manufactured Item (mitm)   - References tiipd001 Item Production Data | TRUE | null | 38 | |*/
-	,CAST('001' AS VARCHAR(6)) AS Routing  												/*Routing (rouc) | TRUE | null | 9 | |*/
-	,'000001' AS Revision
+	,CAST(kps.ItemlnCE AS VARCHAR(38)) AS ManufacturedItem		         		/*Manufactured Item (mitm)   - References tiipd001 Item Production Data | TRUE | null | 38 | |*/
+	,CAST('001' AS VARCHAR(6)) AS Routing  										/*Routing (rouc) | TRUE | null | 9 | |*/
+/* 30-01-2023 KL : Not New field Revision in template 202310 was already in april template */
+	,CAST('000001' AS VARCHAR(6)) AS Revision	
 	,10 AS Status																/*Status (rost)  When loading with DAL, use status 10 (new) and approve as post conversion action. | FALSE | 20 |  | 10;"New";20;"Approved";30;"Expired"|*/
 	,CAST('2023/01/01 00:00:00' AS SMALLDATETIME) AS EffectiveDate				/*Effective Date (efdt) | FALSE | null |  | |*/
 	,CAST(NULL AS SMALLDATETIME) AS ExpiryDate									/*Expiry Date (exdt) - When empty, date will be set to MAX | TRUE | null |  | |*/
-	,CAST('Migrated from KPrakor'AS VARCHAR(30)) AS Description						/*Description (dsca) | TRUE | null | 30 | |*/
-	,2 AS StandardRouting															/*Standard Routing (stor) | TRUE | 2 |  | 1;"Yes";2;"No (default)"|*/
-	,CAST(NULL AS VARCHAR(9)) AS StandardRoutingCode								/*Standard Routing Code (strc)   When Item is empty or Standard Routing is "no", no value allowed. When standard routing is "yes", this field is mandatory and must be an existing standard routing code. | FALSE | null | 9 | |*/
-	,CAST(NULL AS VARCHAR(6)) AS StandardRoutingRevision							/*Standard Routing Revision (rtrv) When Item is empty or Standard Routing is "no", no value allowed. When standard routing is "yes", this field is mandatory and must be an existing standard routing code. | FALSE | null | 6 | |*/
+	,CAST('Migrated from KPrakor'AS VARCHAR(30)) AS Description					/*Description (dsca) | TRUE | null | 30 | |*/
+	,2 AS StandardRouting														/*Standard Routing (stor) | TRUE | 2 |  | 1;"Yes";2;"No (default)"|*/
+	,CAST(NULL AS VARCHAR(9)) AS StandardRoutingCode							/*Standard Routing Code (strc)   When Item is empty or Standard Routing is "no", no value allowed. When standard routing is "yes", this field is mandatory and must be an existing standard routing code. | FALSE | null | 9 | |*/
+	,CAST(NULL AS VARCHAR(6)) AS StandardRoutingRevision						/*Standard Routing Revision (rtrv) When Item is empty or Standard Routing is "no", no value allowed. When standard routing is "yes", this field is mandatory and must be an existing standard routing code. | FALSE | null | 6 | |*/
 	,1 AS RoutingQuantity														/*Routing Quantity (roqa) | FALSE | 1 |  | >0|*/
 	,1 AS MinimumQuantity														/*Minimum Quantity (minq) | FALSE | 0 |  | >=0|*/
 	,99999999 AS MaximumQuantity												/*Maximum Quantity (maxq) | FALSE | 99999999 |  | >0|*/
