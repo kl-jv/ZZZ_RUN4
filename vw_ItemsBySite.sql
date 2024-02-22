@@ -3,7 +3,7 @@ GO
 
 /****** Object:  View [dbo].[vw_ItemsBySite]    Script Date: 02/01/2024 12:29:53 ******/
 
-/* 02-01-2024 :  Request from belinda:  for POV.03  When SupplySource = 60 them SafetyTime 0  */ 
+/* 02-01-2024 :  Request from belinda:  for POV.03  When SupplySource = 60 ( Distribution ) them SafetyTime 0  */ 
 
 SET ANSI_NULLS ON
 GO

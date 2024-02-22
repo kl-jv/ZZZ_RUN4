@@ -26,7 +26,7 @@ All items that are have the value Migrate  = 0 must have the ItemGroup PI9999 an
 
 */
 
-ALTER VIEW [dbo].[vw_Items] AS 
+-- ALTER VIEW [dbo].[vw_Items] AS 
 
 
 
@@ -249,9 +249,25 @@ SELECT
 	,CAST(NULL AS VARCHAR(30)) AS Material												/*Material (tcibd001.dscb) | FALSE | null | 30 | 30 | |*/
 	,CAST(NULL AS VARCHAR(30)) AS Size													/*Size (tcibd001.dscc) | FALSE | null | 30 | 30 | |*/
 	,CAST(NULL AS VARCHAR(30)) AS [Standard]											/*Standard (tcibd001.dscd) | FALSE | null | 30 | 30 | |*/
+
+
+
 	,CAST(prt.ProductType AS VARCHAR(3)) AS ProductType									/*Product Type (tcibd001.ctyp)   - Reference to tcmcs015 Product Types | FALSE | null | 3 | 3 | |*/
+
+/*  KL : 15-02-2024 ProductType from new table ProductLine_Type */ 
+
+	, CAST(plt.ProductType AS VARCHAR(3)) AS ProductType_new_table 	
+
 	,CAST(NULL AS VARCHAR(6)) AS ProductClass											/*Product Class (tcibd001.cpcl)   - Reference to  tcmcs062 Product Classes | FALSE | null | 6 | 6 | |*/
+	
+	
 	,CAST(CASE WHEN LEN(TRIM(kps.ProductLine)) = 0 THEN '------' ELSE kps.ProductLine END AS VARCHAR(6)) AS ProductLine /*Product Line (tcibd001.cpln)   - Reference to tcmcs061 Product Lines | FALSE | null | 6 | 6 | |*/
+	
+/*  KL : 15-02-2024 ProductLine from new table ProductLine_Type */ 	
+
+, CAST(kps.ProductLine AS VARCHAR(6)) AS ProductLine_new_table
+
+	
 	,CAST(NULL AS VARCHAR(6)) AS Manufacturer											/*Manufacturer (tcibd001.cmnf)   - Reference to  tcmcs060 Manufacturers | TRUE | null | 6 | 6 | |*/
 	,CAST(NULL AS VARCHAR(3)) AS SelectionCode											/*Selection Code (tcibd001.csel)   - Reference to tcmcs022 Selection Codes | FALSE | null | 3 | 3 | |*/
 	,CAST(NULL AS VARCHAR(9)) AS TechnicalCoordinator									/*Technical Coordinator (tcibd001.cood)   - Reference to  tccom001 Employees | FALSE | null | 9 | 9 | |*/
@@ -557,6 +573,12 @@ FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
 	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND  kps.Migrate IN (0,1))
 	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+
+/*  KL : 15-02-2024 New table ProductLine_Type */ 
+	LEFT JOIN ZZZ_Italy.dbo. ProductLine_Type plt ON (itm.MG_TIP_REC = plt.ProductType AND itm.MG_DITTA = 1)
+
+
+
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)
 	LEFT JOIN
 		(

@@ -10,15 +10,17 @@ GO
 
 
 
-ALTER VIEW [dbo].[vw_JobShopRoutingOperations] AS 
+ ALTER VIEW [dbo].[vw_JobShopRoutingOperations] AS 
 
 /* 2023-10-17 : CHECK FOR POV 3 THE REFERENCE OPERATIONS AND WORK CENTERS, THE MAPPING FILE DEPENDS OP BELINDA */
-
+/* 2024-01-30 : New excel provided by Belinda : mail 21-12-2023 ) */ 
 SELECT
 	 CAST('IT.POV.01' AS VARCHAR(9)) AS [Site]											/*Site (site) - Reference to tcemm050 Sites     Infor LN table: tirou401 | TRUE | null |Text | 9 | |*/
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS ManufacturedProject								/*Project (mitm)   - Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" |Text | 9 | |*/
 	,CAST(NULL AS VARCHAR(38)) AS ManufacturedItem										/*Manufactured Item (mitm)   - References tiipd001 Item Production Data | TRUE | null | 38 | |*/
 	,CAST(roh.Routing AS VARCHAR(9)) AS Routing											/*Routing (rouc) | TRUE | null |Text | 9 | |*/
+/* 30-01-2023 KL : Not New field Revision in template 202310 was already in april template */
+	,CAST('000001' AS VARCHAR(6)) AS Revision											/* Revision (tirou401.rorv) */
 	,CAST(CASE WHEN mwc.Operation IS NULL THEN 0 ELSE mwc.Operation END AS FLOAT) AS Operation	/*Operation (opno) | TRUE | 0 |Long Integer |  | <100000|*/
 	,CAST(0 AS FLOAT) AS NextOperation													/*Next Operation (nopr) | TRUE | 0 |Long Integer |  | <100000|*/
 	,CAST(CASE WHEN mwc.ReferenceOperation IS NULL THEN NULL ELSE  mwc.ReferenceOperation END AS VARCHAR(8)) AS ReferenceOperation					/*Reference Operation (refo) - References tirou450 Reference Operations (formerly called 'Task') | TRUE | null |Text | 8 | |*/
@@ -58,7 +60,8 @@ FROM
 		,CAST('PROJEMPTY' AS VARCHAR(9)) AS ManufacturedProject						/*Project (mitm)   - Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 		,CAST(''   AS VARCHAR(38)) AS ManufacturedItem								/*Manufactured Item (mitm)   - References tiipd001 Item Production Data | TRUE | null | 38 | |*/
 		,'IT.' + RIGHT(('000000' + CAST((ROW_NUMBER() OVER(ORDER BY (CAST(kps.ItemLnCE AS VARCHAR(38))) ASC)) AS VARCHAR(6))),6) AS Routing
-		,'000001' AS Revision
+/* 30-01-2023 KL : Not New field Revision in template 202310 was already in april template */
+		,CAST('000001' AS VARCHAR(6)) AS Revision											/* Revision (tirou401.rorv) */
 		,rou.CL_CODICE_CICLO
 		,itm.MG_DITTA
 	FROM
@@ -111,6 +114,7 @@ SELECT
 	,t3.ManufacturedProject
 	,t3.ManufacturedItem
 	,t3.Routing
+	,t3.Revision
 	,t3.Operation
 	,t3.NextOperation
 	,t3.ReferenceOperation
@@ -144,6 +148,8 @@ SELECT
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS ManufacturedProject								/*Project (mitm)   - Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" |Text | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS ManufacturedItem								/*Manufactured Item (mitm)   - References tiipd001 Item Production Data | TRUE | null | 38 | |*/
 	,CAST('001' AS VARCHAR(9)) AS Routing												/*Routing (rouc) | TRUE | null |Text | 9 | |*/
+/* 30-01-2023 KL : Not New field Revision in template 202310 was already in april template */
+	,CAST('000001' AS VARCHAR(6)) AS Revision											/* Revision (tirou401.rorv) */
 	,CAST(CASE WHEN mwc.WorkCenter IS NOT NULL AND kps.Itemgroup = 'GEKIT6' THEN 6000
 		ELSE
 			CASE WHEN mwc.WorkCenter IS NOT NULL AND kps.Itemgroup <> 'GEKIT6' THEN 6010
@@ -206,7 +212,8 @@ FROM
 		,CAST('PROJEMPTY' AS VARCHAR(9)) AS ManufacturedProject						/*Project (mitm)   - Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 		,CAST(''   AS VARCHAR(38)) AS ManufacturedItem								/*Manufactured Item (mitm)   - References tiipd001 Item Production Data | TRUE | null | 38 | |*/
 		,'IT.' + RIGHT(('000000' + CAST((ROW_NUMBER() OVER(ORDER BY (CAST(kps.ItemLnCE AS VARCHAR(38))) ASC)) AS VARCHAR(6))),6) AS Routing
-		,'000001' AS Revision
+/* 30-01-2023 KL : Not New field Revision in template 202310 was already in april template */
+		, CAST('000001' AS VARCHAR(6)) AS Revision
 		,rou.CL_CODICE_CICLO
 		,itm.MG_DITTA
 	FROM
@@ -255,6 +262,7 @@ GROUP BY
 	,t3.ManufacturedProject
 	,t3.ManufacturedItem
 	,t3.Routing
+	,t3.Revision
 	,t3.Operation
 	,t3.NextOperation
 	,t3.ReferenceOperation

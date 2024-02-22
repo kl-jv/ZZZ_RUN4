@@ -32,6 +32,8 @@ ALTER VIEW [dbo].[vw_ProductionBillOfMaterial] AS
 SELECT
 	 CAST('PROJEMPTY' AS VARCHAR(9)) AS ProductProject						/*Project segment of Product (timfc300/310.mitm)   - References to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY".     Infor LN tables: timfc300, timfc310 | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS ProductItem						/*Item segment of Product (timfc300/310.mitm)   - References to tiipd001 Item Production Data | FALSE |  | 38 | |*/
+/* 30-01-2023 KL : New field Revision in template 202310 */
+	,CAST('000001' AS VARCHAR(6)) AS Revision								 /*Revision  (rorv)  */ 
 	,(ROW_NUMBER() OVER (PARTITION BY bom.DB_CODICE_PADRE, bom.DB_DITTA  ORDER BY bom.DB_CODICE_PADRE, bom.DB_SEQ, bom.DB_CODICE_FIGLIO ASC))*10  AS Position											/*Position (timfc310.pono) | TRUE | 0 |  | |*/
 	,20 AS Status														/*Status (timfc300.bmst) When loading with DAL, use status 10 (new) and approve as post conversion action. | TRUE | 20 |  | 10;"New";20;"Approved";30;"Expired"|*/
 	,CAST('2023/01/01 00:00:00' AS SMALLDATETIME) AS EffectiveDate			/*Effective Date (timfc300.indt) | TRUE |  |  | |*/
