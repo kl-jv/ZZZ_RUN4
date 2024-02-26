@@ -67,8 +67,9 @@ SELECT
 
 							/*Selection Code (csel)   - Reference to tcmcs022 Selection Codes | FALSE |  | 3 | 3 | */
 
-/* Fill SelectionCode with ProductType */
---	,CAST(NULL AS VARCHAR(3)) AS SelectionCode	
+-- Fill SelectionCode with ProductType 
+--	,CAST(NULL AS VARCHAR(3)) AS SelectionCode	*/ 
+/* 26-02-2024 KL: Now from SelectionCode table with field SelectionCode ) */ 
 	,CAST(sec.SelectionCode AS VARCHAR(3)) AS SelectionCode				/*Selection Code (csel)   - Reference to tcmcs022 Selection Codes | FALSE |  | 3 | 3 | */
 																		-- Fill Selection Code with "Old" productType 
 
