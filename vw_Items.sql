@@ -1,13 +1,12 @@
 USE [ZZZ_RUN4]
 GO
 
-/****** Object:  View [dbo].[vw_Items]    Script Date: 20/12/2023 11:57:12 ******/
+/****** Object:  View [dbo].[vw_Items]    Script Date: 2/26/2024 12:04:24 PM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
-
 
 
 
@@ -26,7 +25,7 @@ All items that are have the value Migrate  = 0 must have the ItemGroup PI9999 an
 
 */
 
--- ALTER VIEW [dbo].[vw_Items] AS 
+ALTER VIEW [dbo].[vw_Items] AS 
 
 
 
@@ -205,15 +204,22 @@ SELECT
 				ELSE ''
 			END
 		END AS VARCHAR(3)) AS ItemSignal												/*Item Signal (tcibd001.csig)   - Reference to  tcmcs018 Item Signals | FALSE | null | 3 | 3 | |*/
-	,SUBSTRING(CAST(CASE WHEN kps.ItemDescriptionGB IS NOT NULL THEN kps.ItemDescriptionGB 
+
+/* 21-02-2024 KL  SearchKeyI and SearchKeyII set to NULL to avoid MLE on the key  	*/
+/*	,SUBSTRING(CAST(CASE WHEN kps.ItemDescriptionGB IS NOT NULL THEN kps.ItemDescriptionGB 
 		ELSE 
 			CASE WHEN kps.ItemDescriptionIT IS NOT NULL THEN kps.ItemDescriptionIT
 				ELSE SUBSTRING(KPRAKTOR.dbo.fn_ProperCase(KPRAKTOR.dbo.fn_RemoveMultipleSpaces(RTRIM(itm.MG_DESCRI) + ' ' + LTRIM(RTRIM(itm.MG_MISURE)))),1,60)
 				END
 		END AS VARCHAR(60)),1,16) AS SearchKeyI											/*Search Key I (tcibd001.seak) | FALSE | null | 16 | 16 | |*/
-
-/* 19-07 */
 	,CAST (kps.ItemLnCe AS VARCHAR (16) ) AS SearchKeyII								/*Search Key II (tcibd001.seab) | FALSE | null | 16 | 16 | |*/
+*/ 
+
+	, CAST(NULL AS VARCHAR(16)) AS  SearchKeyI
+	, CAST(NULL AS VARCHAR(16)) AS  SearchKeyII
+
+
+
 	,CAST(CASE kps.ItemGroup
 		WHEN 'COGEN1' THEN 'LN-CM'
 		WHEN 'COMAN2' THEN 'LN-CM'
@@ -251,25 +257,28 @@ SELECT
 	,CAST(NULL AS VARCHAR(30)) AS [Standard]											/*Standard (tcibd001.dscd) | FALSE | null | 30 | 30 | |*/
 
 
-
-	,CAST(prt.ProductType AS VARCHAR(3)) AS ProductType									/*Product Type (tcibd001.ctyp)   - Reference to tcmcs015 Product Types | FALSE | null | 3 | 3 | |*/
-
-/*  KL : 15-02-2024 ProductType from new table ProductLine_Type */ 
-
-	, CAST(plt.ProductType AS VARCHAR(3)) AS ProductType_new_table 	
-
+/*  KL : 21-02-2024 ProductType from new table ProductLine_Type */
+--	,CAST(prt.ProductType AS VARCHAR(3)) AS ProductType									/*Product Type (tcibd001.ctyp)   - Reference to tcmcs015 Product Types | FALSE | null | 3 | 3 | |*/
+	,CAST(CASE WHEN (plt.ProductType)  IS NULL THEN '------' 
+			   ELSE plt.ProductType 
+		  END AS VARCHAR(3)) AS ProductType 		
 	,CAST(NULL AS VARCHAR(6)) AS ProductClass											/*Product Class (tcibd001.cpcl)   - Reference to  tcmcs062 Product Classes | FALSE | null | 6 | 6 | |*/
-	
-	
-	,CAST(CASE WHEN LEN(TRIM(kps.ProductLine)) = 0 THEN '------' ELSE kps.ProductLine END AS VARCHAR(6)) AS ProductLine /*Product Line (tcibd001.cpln)   - Reference to tcmcs061 Product Lines | FALSE | null | 6 | 6 | |*/
-	
-/*  KL : 15-02-2024 ProductLine from new table ProductLine_Type */ 	
 
-, CAST(kps.ProductLine AS VARCHAR(6)) AS ProductLine_new_table
-
+	
+/* 21-02-2024 KL : When ProductLine is NULL then ----  */ 	
+--	,CAST(CASE WHEN LEN(TRIM(kps.ProductLine)) = 0 THEN '------' ELSE kps.ProductLine END AS VARCHAR(6)) AS ProductLine /*Product Line (tcibd001.cpln)   - Reference to tcmcs061 Product Lines | FALSE | null | 6 | 6 | |*/
+	,CAST(CASE WHEN (kps.ProductLine) IS NULL THEN '------' ELSE kps.ProductLine END AS VARCHAR(6)) AS ProductLine 
 	
 	,CAST(NULL AS VARCHAR(6)) AS Manufacturer											/*Manufacturer (tcibd001.cmnf)   - Reference to  tcmcs060 Manufacturers | TRUE | null | 6 | 6 | |*/
-	,CAST(NULL AS VARCHAR(3)) AS SelectionCode											/*Selection Code (tcibd001.csel)   - Reference to tcmcs022 Selection Codes | FALSE | null | 3 | 3 | |*/
+
+/* 21-02-2024 KL:  Fill SelectionCode with ProductType */
+---	,CAST(NULL AS VARCHAR(3)) AS SelectionCode											/*Selection Code (tcibd001.csel)   - Reference to tcmcs022 Selection Codes | FALSE | null | 3 | 3 | |*/
+
+/* 26-02-2024 ProductType table has been chnaged to SelectionCode table (sec) */
+	,CAST(sec.SelectionCode AS VARCHAR(3)) AS SelectionCode
+
+
+
 	,CAST(NULL AS VARCHAR(9)) AS TechnicalCoordinator									/*Technical Coordinator (tcibd001.cood)   - Reference to  tccom001 Employees | FALSE | null | 9 | 9 | |*/
 	,CAST(NULL AS VARCHAR(6)) AS ResponsibleDepartment									/*Responsible Department (tcibd001.rpdt)  - Reference to tcmcs065(Departments) | FALSE | null | 6 | 6 | |*/
 	,2 AS CriticalSafetyItem															/*Critical Safety Item(tcibd001.icsi) | FALSE | 2 |  |  | 1;"Yes";2;"No (default)"|*/
@@ -388,29 +397,35 @@ SELECT
 	,0 AS ScrapFactor																	/*Scrap Factor (scpf) | FALSE | 0 |  |  | |*/
 	,0 AS ScrapQuantity																	/*Scrap Quantity (scpq) | FALSE | 0 |  |  | |*/
 	,2 AS ReceiptInspection																/*Production - Receipt Inspection(tiipd001.iimf) | FALSE | | 1;"Yes";2;"No" |*/
+
+/* 21-02-2024 KL  BackflusIfMaterial must be 2 ( Info Gideon ) */
+/* Keep ItemGroups for reference when needed , all values 1 changed to 2 */
 	,CASE kps.ItemGroup
-			WHEN 'COGEN1' THEN 1
-			WHEN 'COMAN2' THEN 1
+			WHEN 'COGEN1' THEN 2	-- was 1
+			WHEN 'COMAN2' THEN 2	-- was 1
 			WHEN 'DPMTO1' THEN 2
 			WHEN 'GEKIT6' THEN 2
-			WHEN 'GELCO1' THEN 1
-			WHEN 'GELTR2' THEN 1
+			WHEN 'GELCO1' THEN 2	-- was 1
+			WHEN 'GELTR2' THEN 2	-- was 1
 			WHEN 'GESCO3' THEN 2
-			WHEN 'GESTD5' THEN 1
-			WHEN 'GESTR4' THEN 1
-			WHEN 'PHMAN2' THEN 1
-			WHEN 'PHSAL1' THEN 1
+			WHEN 'GESTD5' THEN 2	-- was 1
+			WHEN 'GESTR4' THEN 2	-- was 1
+			WHEN 'PHMAN2' THEN 2	-- was 1
+			WHEN 'PHSAL1' THEN 2	-- was 1
 			WHEN 'PI9999' THEN 2
 			WHEN 'CI0001' THEN 2
 			WHEN 'TOGEN1' THEN 2
-			WHEN 'COFLS4' THEN 1
+			WHEN 'COFLS4' THEN 2	-- was 1
 			ELSE 2
 		END AS BackflushIfMaterial														/*Backflush If Material (bfcp) | FALSE | 2 |  |  | 1;"Yes";2;"No (default)"|*/
+
+/* 21-02-2024 KL  BackflusMaterial must be 2 ( Info Gideon ) */
+/* Keep ItemGroups for reference when needed , all values 1 changed to 2 */
 	,CASE kps.ItemGroup
 			WHEN 'COGEN1' THEN 2
 			WHEN 'COMAN2' THEN 2
-			WHEN 'DPMTO1' THEN 1
-			WHEN 'GEKIT6' THEN 1
+			WHEN 'DPMTO1' THEN 2	-- was 1
+			WHEN 'GEKIT6' THEN 2	-- was 1
 			WHEN 'GELCO1' THEN 2
 			WHEN 'GELTR2' THEN 2
 			WHEN 'GESCO3' THEN 2
@@ -572,14 +587,20 @@ SELECT
 FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
 	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND  kps.Migrate IN (0,1))
-	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+/* 26-02-2024 KL ProductType tabel has become SelectionCode with files SelectionCode instead of ProductType */
+--	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+
+	LEFT JOIN ZZZ_Italy.dbo.SelectionCode sec ON (itm.MG_TIP_REC = sec.Code AND itm.MG_DITTA = 1)
+
 
 /*  KL : 15-02-2024 New table ProductLine_Type */ 
-	LEFT JOIN ZZZ_Italy.dbo. ProductLine_Type plt ON (itm.MG_TIP_REC = plt.ProductType AND itm.MG_DITTA = 1)
 
-
-
+	LEFT JOIN ZZZ_Italy.dbo. ProductLine_Type plt ON ( plt.ProductLine = kps.ProductLine ) 
+	 
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)
+
+
+
 	LEFT JOIN
 		(
 			SELECT
