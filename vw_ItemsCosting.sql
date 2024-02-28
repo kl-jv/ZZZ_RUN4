@@ -15,7 +15,7 @@ GO
 
 
 
--- ALTER VIEW [dbo].[vw_ItemsCosting] AS
+ALTER VIEW [dbo].[vw_ItemsCosting] AS
 
 /*
 		ATTENTION : Risks: 
@@ -88,7 +88,7 @@ SELECT
 	,CAST(NULL AS VARCHAR(12)) AS LandedCostsSet								/*Landed Costs Set (ticpr007.lcst) - Reference to tclct100 Landed Costs Sets |  | null | 12 | |*/
 FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
-/* 28-02-2024 KL:  Map warehouse to warhouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
+/* 28-02-2024 KL:   Change to POV1 <> 0 , remove POV2 and RD  */ 
 -- 	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD = 1 ))
 	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1  <> 0  ))
 /* 28-02-2024 KL:  Map warehouse to warhouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
