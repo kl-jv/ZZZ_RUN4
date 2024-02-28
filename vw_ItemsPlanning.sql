@@ -9,14 +9,15 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-ALTER VIEW [dbo].[vw_ItemsPlanning] AS
+-- ALTER VIEW [dbo].[vw_ItemsPlanning] AS
 
 SELECT
 	 CAST('PROJEMPTY' AS VARCHAR(9)) AS Project					/*Project segment of Item (item)   - Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY".                                                      ERPLN table: cprpd100 | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS Item					/*Item segment of Item (cprpd100.item)   - Reference to tcibd001 Items | TRUE | null | 38 | |*/
 	,CAST('IT1' AS VARCHAR(3)) AS Cluster						/*Cluster (cprpd100.clus)   - Reference to tcemm135 Clusters | TRUE | null | 3 | |*/
 /* 21-07  POV1/POV2/POV3/RD changes */
-	,CAST
+/* 28-02-2024 KL: Commented because  Map warehouse to warehouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
+/*	,CAST
 	(
 	  CASE
 		WHEN kps.POV1 = 1 THEN 'IT0110'
@@ -35,6 +36,10 @@ SELECT
 		  END
 	  END AS VARCHAR(6)	
 	) AS 	Warehouse															/*Warehouse (cprpd100.cwar)   - Reference to tcmcs003 Warehouses | TRUE | null | 6 | |*/		
+*/ 
+/* 28-02-2024 KL:  Map warehouse to warehouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
+	,CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse
+
 
 	,CAST('IT.POV.01' AS VARCHAR(9)) AS OrderingSite			/*Site (cprpd100.site) - Reference to tcemm050 Sites | FALSE | null | 9 | |*/
 	,1 AS SupplySource											/*Default Supply Source (cprpd100.sour) | FALSE | 1 |  | 1;"Production/Purchase";2;"Distribution"|*/
@@ -162,7 +167,12 @@ SELECT
 
 FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PI9999','CI0001','TOGEN1','COFLS04') AND (kps.POV1 = 1 OR kps.POV2 = 1  OR kps.RD = 1))
+ /* 28-02-2024 KL:   Change to POV1 <> 0 , remove POV2 and RD  */ 
+--	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PI9999','CI0001','TOGEN1','COFLS04') AND (kps.POV1 = 1 OR kps.POV2 = 1  OR kps.RD = 1))
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PI9999','CI0001','TOGEN1','COFLS04') AND (kps.POV1 <> 0 ))
+/* 28-02-2024 KL:  Map warehouse to warhouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
+LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV1 = scm.POV1 AND scm.Site = 'IT.POV.01')
+
 
 UNION ALL
 
@@ -170,9 +180,13 @@ SELECT
 	 CAST('PROJEMPTY' AS VARCHAR(9)) AS Project					/*Project segment of Item (item)   - Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY".                                                      ERPLN table: cprpd100 | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS Item					/*Item segment of Item (cprpd100.item)   - Reference to tcibd001 Items | TRUE | null | 38 | |*/
 	,CAST('IT3' AS VARCHAR(3)) AS Cluster						/*Cluster (cprpd100.clus)   - Reference to tcemm135 Clusters | TRUE | null | 3 | |*/
-	,CAST(CASE WHEN kps.POV3 = 1 THEN 'IT0300'
+
+ /* 28-02-2024 KL: Commented because  Map warehouse to warehouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
+/*	,CAST(CASE WHEN kps.POV3 = 1 THEN 'IT0300'
 		ELSE 'IT0300'
 		END AS VARCHAR(6)) AS Warehouse							/*Warehouse (cprpd100.cwar)   - Reference to tcmcs003 Warehouses | TRUE | null | 6 | |*/
+	, CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse	
+*/ 
 	,CAST('IT.POV.03' AS VARCHAR(9)) AS OrderingSite			/*Site (cprpd100.site) - Reference to tcemm050 Sites | FALSE | null | 9 | |*/
 	,1 AS SupplySource											/*Default Supply Source (cprpd100.sour) | FALSE | 1 |  | 1;"Production/Purchase";2;"Distribution"|*/
 	,9 AS PlanLevel												/*Plan Level (cprpd100.plvl) | TRUE | 1 |  | |*/
@@ -284,7 +298,8 @@ FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
 	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV3 = 1 AND kps.ItemGroup NOT IN ('PI9999','CI0001','TOGEN1','COFLS04'))
 	JOIN ZZZ_Italy.dbo.KPSourceSP kpp ON (kps.Item = kpp.Item)
---	join ZZZ_Italy.dbo.KPSource kps on (itm.MG_CODICE = kps.Item and itm.MG_DITTA = 1 and kps.Migrate = 1 )	
+/* 28-02-2024 KL:  Map warehouse to warehouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
+	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV3 = scm.POV3 AND scm.Site = 'IT.POV.03')	
 GO
 
 
