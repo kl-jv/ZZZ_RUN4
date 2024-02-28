@@ -1,15 +1,17 @@
 USE [ZZZ_RUN4]
 GO
 
-/****** Object:  View [dbo].[vw_ItemsBySite]    Script Date: 02/01/2024 12:29:53 ******/
-
-/* 02-01-2024 :  Request from belinda:  for POV.03  When SupplySource = 60 ( Distribution ) them SafetyTime 0  */ 
-
+/****** Object:  View [dbo].[vw_ItemsBySite]    Script Date: 2/27/2024 7:24:06 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
+
+
+
+
 
 
 
@@ -154,28 +156,10 @@ SELECT
 
 	,CAST(NULL AS VARCHAR(200)) AS ItemGeneralText								/*General - Item Text (tttxt010.ctxt)	FALSE | | | | */
 	,0 AS TextIDGeneral											/*General - Text ID (tcibd150.txta)	FALSE |Long Integer| | */
-	,CAST
-	(
-	  CASE
-		WHEN kps.POV1 = 1 THEN 'IT0110'
-		ELSE
-		  /* 13-07-2023 Reverted back POV2 to IT0210 */
-		  CASE
-			WHEN kps.POV2 = 1 THEN 'IT0210'
-			ELSE
-			  CASE
-				WHEN kps.POV3 = 1 THEN 'IT0300'
-				ELSE
-				  CASE
-					WHEN kps.RD = 1 THEN 'ITE100'				/* RD is in POV1 , infor POV1/POV2/POV3 and RD from excel mario */	
-					ELSE 'IT0110'
-				  END
-			  END
-		  END
-	  END AS VARCHAR(6)
-	) AS OrderingWarehouse 									/*Ordering - Warehouse (tcibd250.cwar) - Reference to tcmcs003 Warehouses ** Mandatory for item ordering by Site | FALSE | null | 6 | |*/
-	,1 AS OrderMethod										/*Ordering - Order Method (tcibd250.omth) (HYVA) | FALSE | 1 |  | 1;"Lot for Lot (default)";2;"Economic Order Quantity";3;"Fixed Order Quantity";4;"Replenish to MAX.Inv."|*/
-	,10 AS OrderingTimeUnit									/*Ordering - Time Unit for OrderInterval, SafetyTime (tcibd250.oivu, tcibd250.tuni) (Will set "Use Global Item" to no when value <> 99)	| FALSE	| Byte |5;Hours;10;Days;99;"Inherit from Item (defaults)" | */
+	/*---- replaced 2024/02/14 by JVD ----*/
+	,CAST(scm.Warehouse AS VARCHAR(6)) AS OrderingWarehouse 	/*Ordering - Warehouse (tcibd250.cwar) - Reference to tcmcs003 Warehouses ** Mandatory for item ordering by Site | FALSE | null | 6 | |*/
+	,1 AS OrderMethod											/*Ordering - Order Method (tcibd250.omth) (HYVA) | FALSE | 1 |  | 1;"Lot for Lot (default)";2;"Economic Order Quantity";3;"Fixed Order Quantity";4;"Replenish to MAX.Inv."|*/
+	,10 AS OrderingTimeUnit										/*Ordering - Time Unit for OrderInterval, SafetyTime (tcibd250.oivu, tcibd250.tuni) (Will set "Use Global Item" to no when value <> 99)	| FALSE	| Byte |5;Hours;10;Days;99;"Inherit from Item (defaults)" | */
 	,CAST(1 AS FLOAT) AS OrderInterval										/*Ordering - Order Interval  (tcibd250.oint) (HYVA) | FALSE | 0 |  | |*/
 	,CAST(CASE WHEN pla.GE_SCORTA_MIN <> 0 THEN pla.GE_SCORTA_MIN
 		ELSE
@@ -196,29 +180,29 @@ SELECT
 	,0 AS ReorderPoint										/*Ordering - Reorder Point (tcibd250.reop) (HYVA) | FALSE | 0 |  | |*/
 
 /* ATTENTION : TO BE REPLACED BY EMPLOYEE TABLE */
-	,CAST(NULL AS VARCHAR(9)) AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+
+
+
+--	,CAST(NULL AS VARCHAR(9)) AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+--	, MAP.KPraktorSupplier
+--	, map.KpraktorPlanner
+
+	, map.LN_Employee_Planner	 AS Planner							/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+--	, mab.KPraktorSupplier
+--	, mab.KpraktorBuyer  AS Buyer	
+--	, mab.LN_Employee_Buyer AS LN_buyer
+
+
+
+
 	,2 AS LotSizeCalculationAllowed							/*Ordering - Lot Size Calculation Allowed (tcibd250.auso)  (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
 
 	/* SALES */
-	,CAST
-	(
-	  CASE
-		WHEN kps.POV1 = 1 THEN 'IT0110'
-		ELSE	
-		  CASE
-			WHEN kps.POV2 = 1 THEN 'IT0210'
-			ELSE
-			  CASE
-				WHEN kps.POV3 = 1 THEN 'IT0300'
-				ELSE
-				  CASE
-					WHEN kps.RD = 1 THEN 'ITE100'			/* RD is in POV1 , infor POV1/POV2/POV3 and RD from excel mario */	
-					ELSE 'IT0110'
-				  END
-			  END
-		  END
-	  END AS VARCHAR(6)
-    ) AS  SalesWarehouse									/*Sales Warehouse (tdisa081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
+	/*---- replaced 2024/02/14 by JVD ----*/
+	,CAST(scm.Warehouse AS VARCHAR(6)) AS  SalesWarehouse	/*Sales Warehouse (tdisa081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
 
 	
 	/* PURCHASE */
@@ -263,29 +247,18 @@ SELECT
 		END
 			AS VARCHAR(6)
 		) AS PurchaseStatisticsGroup						/*Purchase Statistics Group (tdipu081.csgp) - Reference to tcmcs044 Statistic groups | FALSE | null | 6 | |*/
-	,CAST
-	(
-	  CASE
-		WHEN kps.POV1 = 1 THEN 'IT0110'
-		ELSE	
-		  CASE
-			WHEN kps.POV2 = 1 THEN 'IT0210'
-			ELSE
-			  CASE
-				WHEN kps.POV3 = 1 THEN 'IT0300'
-				ELSE
-				  CASE
-					WHEN kps.RD = 1 THEN 'ITE100'			 /* RD is in POV1 , infor POV1/POV2/POV3 and RD from excel mario */	
-					ELSE 'IT0110'
-				  END
-			  END
-		  END
-	  END AS VARCHAR(6)
-	) AS PurchaseWarehouse									/*Purchase Warehouse (tdipu081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
+	/*---- replaced 2024/02/14 by JVD ----*/
+	,CAST(scm.Warehouse AS VARCHAR(6)) AS  PurchaseWarehouse									/*Purchase Warehouse (tdipu081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
 	,CAST(CASE WHEN bpc.[Business Partner] IS NULL THEN NULL ELSE bpc.[Business Partner] END AS VARCHAR(9)) AS PurchaseBuyFromBP			/*Purchase Buy-from Business Partner (tdipu081.otbp)   - References tcom120 Buy-from Business Partners | FALSE | null | 9 | |*/
 
 	/* ATTENTION :  TO BE REPLACED BY EMPLOYEE TABLE */
-	,CAST(NULL AS VARCHAR(9)) AS Buyer						/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+--	,CAST(NULL AS VARCHAR(9)) AS Buyer						/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+--	, mab.KPraktorSupplier
+--	, mab.KpraktorBuyer  AS Buyer	
+	, mab.LN_Employee_Buyer AS Buyer
+
 	,CAST (
     	CASE 
         	WHEN pus.NettPrice IS NULL 
@@ -305,7 +278,10 @@ SELECT
 		ELSE 1
 		END AS ReleaseToWarehousing							/*Purchase - Release to Warehousing (tdipu081.retw)  (HYVA) ** NOTE: Only applicable for cost items. For other items types, this field will always be set to yes. | FALSE | 1 |  | 1;"Yes";2;"No"|*/
 	,2 AS Inspection										/*Purchase - Inspection (tdipu081.qual) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
-	,CAST(NULL AS SMALLDATETIME) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/
+/* 27-02-2024 KL:  Fill LatestPurchasePriceDate from ZZZ_Italy.dbo.PurchasePrices field Lastdate */ 
+--	,CAST(NULL AS SMALLDATETIME) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/
+	,CAST(pup.LastDate as SMALLDATETIME ) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/
+
 	,0 AS  AveragePurchasePrice 							/* Will create record when date is populated */
 	,CAST (
     	CASE 
@@ -324,32 +300,52 @@ SELECT
 	,2 AS CriticalForInventory								/*Production - Critical for Inventory (tiipf051.cick)  (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
 	,0 AS ScrapPercentage									/*Production - Scrap Percentage (tiipf051.scpf) (HYVA) | FALSE | 0 |  | |*/
 	,0 AS ScrapQuantity										/*Production - Scrap Quantity (tiipf051.scpq) (HYVA) | FALSE | 0 |  | |*/
-	,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom			
-															/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+	/*----  Changed 2024/02/14 JVD  ----*/
+/*	,CASE WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+		ELSE
+				CASE WHEN kps.SupplySource = 50 THEN 2
+					ELSE
+						CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+							ELSE 2
+						END
+				END 
+		END AS Phantom										/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+*/ 
+/*  27-02-2024 KL: Phantom change by JVD , Changed Case Statement */ 
+    , CASE 
+        WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+        WHEN kps.SupplySource = 50 THEN 2
+        WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+        ELSE 2
+    END AS Phantom												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 	,CAST(NULL AS VARCHAR(9)) AS ShopFloorPlanner			/*Production - Shop Floor Planner (tiipf051.sfpl) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+/* 22-02-2024 KL  BackflusIfMaterial must be 2 ( Info Gideon ) */
+/* Keep ItemGroups for reference when needed , all values 1 changed to 2 */
 	,CASE kps.ItemGroup
-			WHEN 'COGEN1' THEN 1
-			WHEN 'COMAN2' THEN 1
-			WHEN 'DPMTO1' THEN 2
+			WHEN 'COGEN1' THEN 2	-- was 1 
+			WHEN 'COMAN2' THEN 2	-- was 1
+			WHEN 'DPMTO1' THEN 2	
 			WHEN 'GEKIT6' THEN 2
-			WHEN 'GELCO1' THEN 1
-			WHEN 'GELTR2' THEN 1
-			WHEN 'GESCO3' THEN 2
-			WHEN 'GESTD5' THEN 1
-			WHEN 'GESTR4' THEN 1
-			WHEN 'PHMAN2' THEN 1
-			WHEN 'PHSAL1' THEN 1
-			WHEN 'PI9999' THEN 2
+			WHEN 'GELCO1' THEN 2	-- was 1
+			WHEN 'GELTR2' THEN 2	-- was 1
+			WHEN 'GESCO3' THEN 2	
+			WHEN 'GESTD5' THEN 2	-- was 1
+			WHEN 'GESTR4' THEN 2	-- was 1
+			WHEN 'PHMAN2' THEN 2	-- was 1
+			WHEN 'PHSAL1' THEN 2	-- was 1
+			WHEN 'PI9999' THEN 2	 
 			WHEN 'CI0001' THEN 2
 			WHEN 'TOGEN1' THEN 2
-			WHEN 'COFLS4' THEN 1
+			WHEN 'COFLS4' THEN 2	-- was 1
 			ELSE 2
 		END AS BackflushIfMaterial							/*Production - Allow Backflushing (tiipf051.bfcp) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+/* 22-02-2024 KL:  BackflusMaterials must be 2 ( Info Gideon ) */
+/* Keep ItemGroups for reference when needed , all values 1 changed to 2 */
 	,CASE kps.ItemGroup
 			WHEN 'COGEN1' THEN 2
 			WHEN 'COMAN2' THEN 2
-			WHEN 'DPMTO1' THEN 1
-			WHEN 'GEKIT6' THEN 1
+			WHEN 'DPMTO1' THEN 2	-- was 1
+			WHEN 'GEKIT6' THEN 2	-- was 1
 			WHEN 'GELCO1' THEN 2
 			WHEN 'GELTR2' THEN 2
 			WHEN 'GESCO3' THEN 2
@@ -364,7 +360,25 @@ SELECT
 			ELSE 2
 		END AS BackflushMaterials								/*Production - Backflush Materials (tiipf051.bfep) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 	,1 AS BackflushHours									/*Production - Backflush Hours (tiipd051.bfhr)  (Will set "Use Global Item" to no when value <> 99)	| FALSE |Byte| |1;"Yes";2;"No";99;"Inherit from Item (defaults)" */
-	,2 AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+/*	,CASE WHEN kps.Itemgroup = 'DPMTO1' THEN 1
+		ELSE
+				CASE WHEN kps.SupplySource = 50 THEN 1
+					ELSE
+						CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 2 
+							ELSE 1
+						END
+				END 
+		END AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+*/ 
+/* 27-02-2024 KL :  Change by JVD Changed Case Statement */ 
+	,CASE 
+		WHEN kps.Itemgroup = 'DPMTO1' THEN 1
+		WHEN kps.SupplySource = 50 THEN 1
+		WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 2 
+		ELSE 1
+	 END AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+
+
 	,2 AS DirectProcessWHOrderLine							/*Production - Direct Process Warehouse Order Line (tiipd051.dris) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 
 	/* SERVICE */
@@ -407,37 +421,23 @@ SELECT
 
 FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1)
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 <> 0))
 	LEFT JOIN KPRAKTOR.SIAPR.ANAGES pla ON (itm.MG_CODICE = pla.GE_CODICE_ART AND itm.MG_DITTA = pla.GE_DITTA)
 	LEFT JOIN ZZZ_Italy.dbo.BP_Conv bpc ON (itm.MG_CODFOR_PREF = bpc.KPraktor AND itm.MG_DITTA = 1)
 	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 0)
 	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 1)
-	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+
+/* 27-02-2024 KL: ProductType table has become SelectionCode with field SelectionCode instead of ProductType */
+-- 	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+	LEFT JOIN ZZZ_Italy.dbo.SelectionCode sec ON (itm.MG_TIP_REC = sec.Code AND itm.MG_DITTA = 1)
+
+
+
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)
-	LEFT JOIN
-		(
-			SELECT
-				 noc.NT_CONTO
-				,NT_DESCR AS Buyer
-				,noc.NT_DITTA
-			FROM
-				KPRAKTOR.SIACG.NOTECLIFOR noc
-			WHERE
-				NT_CLASSE = 'GEST'
-				AND LEN(TRIM(NT_DESCR))>0
-		)buy ON (itm.MG_CODFOR_PREF =  buy.NT_CONTO AND itm.MG_DITTA = buy.NT_DITTA)
-		LEFT JOIN
-		(
-			SELECT
-				 noc.NT_CONTO
-				,NT_DESCR AS Planner
-				,noc.NT_DITTA
-			FROM
-				KPRAKTOR.SIACG.NOTECLIFOR noc
-			WHERE
-				NT_CLASSE = 'SOLL'
-				AND LEN(TRIM(NT_DESCR))>0
-		)sol ON (itm.MG_CODFOR_PREF =  sol.NT_CONTO AND itm.MG_DITTA = sol.NT_DITTA)
+	/* ---- Added 2024/02/14 ----  */
+	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV1 = scm.POV1 AND scm.Site = 'IT.POV.01')
+	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] mab ON ( mab.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
+	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] map ON ( map.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
 	LEFT JOIN
 			(
 			SELECT
@@ -459,15 +459,16 @@ FROM
 							bom.DB_CODICE_PADRE
 					)bom ON (kps.Item = bom.Item)
 		)bol ON (kps.Item = bol.item)
-WHERE
-/* 17-07-2023 RD added , RD is in POV1 */
-	(kps.POV1 = 1
-	OR kps.POV2 = 1	
-	OR kps.RD = 1
-	)
-	
 
-UNION ALL
+-- ATTENTION : TO BE ADJUSTED WHEN ITEM WAREHOUSES PER ITEM ARE KNOWN 
+
+--- 17-07-2023 RD added , RD is in POV1 
+
+
+
+UNION ALL 
+
+-- PART 2
 
 /* UNION SELECTION FOR SPARE PARTS IT.POV.03 */
 
@@ -605,9 +606,8 @@ SELECT
 
 	,CAST(NULL AS VARCHAR(200)) AS ItemGeneralText								/*General - Item Text (tttxt010.ctxt)	FALSE | | | | */
 	,0 AS TextIDGeneral										/*General - Text ID (tcibd150.txta)	FALSE |Long Integer| | */
-	,CAST(CASE WHEN kps.POV3 = 1 THEN 'IT0300'
-			ELSE 'IT0300'
-		  END AS VARCHAR(6)) AS OrderingWarehouse			/*Ordering - Warehouse (tcibd250.cwar) - Reference to tcmcs003 Warehouses ** Mandatory for item ordering by Site | FALSE | null | 6 | |*/
+	/*---- Changed 2024/02/14 JVD ----*/
+	,CAST(scm.warehouse AS VARCHAR(6)) AS OrderingWarehouse			/*Ordering - Warehouse (tcibd250.cwar) - Reference to tcmcs003 Warehouses ** Mandatory for item ordering by Site | FALSE | null | 6 | |*/
 	,1 AS OrderMethod										/*Ordering - Order Method (tcibd250.omth) (HYVA) | FALSE | 1 |  | 1;"Lot for Lot (default)";2;"Economic Order Quantity";3;"Fixed Order Quantity";4;"Replenish to MAX.Inv."|*/
 	,10 AS OrderingTimeUnit									/*Ordering - Time Unit for OrderInterval, SafetyTime (tcibd250.oivu, tcibd250.tuni) (Will set "Use Global Item" to no when value <> 99)	| FALSE	| Byte |5;Hours;10;Days;99;"Inherit from Item (defaults)" | */
 	,CAST(1 AS FLOAT) AS OrderInterval										/*Ordering - Order Interval  (tcibd250.oint) (HYVA) | FALSE | 0 |  | |*/
@@ -617,8 +617,8 @@ SELECT
 
 --	,CAST(kpp.SafetyTime AS FLOAT) AS SafetyTime			/*Ordering - Safety Time (tcibd250.sftm) (HYVA) | FALSE | 0 |  | |*/
 
-/*	20-12-2023 KL : Adjustements requested by Belinda for SupplySource 60 */ 
-
+/*	20-12-2023 KL : Adjustements requested by Belinda
+	For supply source "distribution" (60 ) */
 	,CAST (
 	    CASE
 	        WHEN kpp.SupplySource = 60 THEN 0
@@ -662,12 +662,17 @@ SELECT
 	,CAST(CASE WHEN pla.GE_LOTTO_APPR >0 THEN pla.GE_LOTTO_APPR ELSE 1 END AS FLOAT) AS EconomicOrderQuantity
 															/*Ordering - Economic Order Quantity (tcibd250.ecoq) (HYVA) | FALSE | 1 |  | |*/
 	,0 AS ReorderPoint										/*Ordering - Reorder Point (tcibd250.reop) (HYVA) | FALSE | 0 |  | |*/
-	,CAST(NULL AS VARCHAR(9)) AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+--	,CAST(NULL AS VARCHAR(9)) AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+	, map.LN_Employee_Planner AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+
 	,2 AS LotSizeCalculationAllowed							/*Ordering - Lot Size Calculation Allowed (tcibd250.auso)  (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
 
 	/* SALES */
-
-	,CAST('IT0300' AS VARCHAR(6)) AS SalesWarehouse				/*Sales Warehouse (tdisa081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
+	/*---- Changed 2024/02/14 JVD ----*/
+	,CAST(scm.warehouse AS VARCHAR(6)) AS SalesWarehouse				/*Sales Warehouse (tdisa081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
 
 	/* PURCHASE */
 
@@ -706,11 +711,15 @@ SELECT
 		END
 			AS VARCHAR(6)
 		) AS PurchaseStatisticsGroup						/*Purchase Statistics Group (tdipu081.csgp) - Reference to tcmcs044 Statistic groups | FALSE | null | 6 | |*/
-	,CAST(CASE WHEN kps.POV3 = 1 THEN 'IT0300'
-			ELSE 'IT0300'
-		  END AS VARCHAR(6)) AS PurchaseWarehouse				/*Purchase Warehouse (tdipu081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
+	/*---- Changed 2024/02/14 JVD ----*/
+	,CAST(scm.warehouse AS VARCHAR(6)) AS PurchaseWarehouse				/*Purchase Warehouse (tdipu081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
 	,CAST(CASE WHEN bpc.[Business Partner] IS NULL THEN NULL ELSE bpc.[Business Partner] END AS VARCHAR(9)) AS PurchaseBuyFromBP		/*Purchase Buy-from Business Partner (tdipu081.otbp)   - References tcom120 Buy-from Business Partners | FALSE | null | 9 | |*/
-	,CAST(NULL AS VARCHAR(9)) AS Buyer						/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+--	,CAST(NULL AS VARCHAR(9)) AS Buyer						/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+	, mab.LN_Employee_Buyer AS Buyer				/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+
 	,CAST(CASE WHEN pla.GE_T_APPR_ACQ = 0 THEN 0 ELSE pla.GE_T_APPR_ACQ END AS FLOAT) AS SupplyTime	/*Purchase - Supply Time (tdipu081.suti) | FALSE | 0 |  | |*/
 	,CAST (
 			CASE 
@@ -728,8 +737,9 @@ SELECT
 		ELSE 1
 		END AS ReleaseToWarehousing							/*Purchase - Release to Warehousing (tdipu081.retw)  (HYVA) ** NOTE: Only applicable for cost items. For other items types, this field will always be set to yes. | FALSE | 1 |  | 1;"Yes";2;"No"|*/
 	,2 AS Inspection										/*Purchase - Inspection (tdipu081.qual) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
-	,CAST(NULL AS SMALLDATETIME) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/
-                                                            /* Will create record when date is populated */
+/* 27-02-2024 KL:  Fill LatestPurchasePriceDate from ZZZ_Italy.dbo.PurchasePrices field Lastdate */ 
+--	,CAST(NULL AS SMALLDATETIME) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/
+ 	,CAST(pup.LastDate as SMALLDATETIME ) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/                                                           /* Will create record when date is populated */
 	,0 AS  AveragePurchasePrice
 	,0 AS  LatestPurchasePrice
 
@@ -744,30 +754,33 @@ SELECT
 	,0 AS ScrapPercentage									/*Production - Scrap Percentage (tiipf051.scpf) (HYVA) | FALSE | 0 |  | |*/
 	,0 AS ScrapQuantity										/*Production - Scrap Quantity (tiipf051.scpq) (HYVA) | FALSE | 0 |  | |*/
 	,CAST(kpp.Phantom AS FLOAT) AS Phantom  				/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+
 	,CAST(NULL AS VARCHAR(9)) AS ShopFloorPlanner			/*Production - Shop Floor Planner (tiipf051.sfpl) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+/* 22-02-2024 KL  BackflusIfMaterial must be 2 ( Info Gideon ) */
+/* Keep ItemGroups for reference when needed , all values 1 changed to 2 */
 	,CASE kps.ItemGroup
-			WHEN 'COGEN1' THEN 1
-			WHEN 'COMAN2' THEN 1
-			WHEN 'DPMTO1' THEN 2
-			WHEN 'GEKIT6' THEN 2
-			WHEN 'GELCO1' THEN 1
-			WHEN 'GELTR2' THEN 1
+			WHEN 'COGEN1' THEN 2	--	was 1
+			WHEN 'COMAN2' THEN 2	--	was 1
+			WHEN 'DPMTO1' THEN 2	
+			WHEN 'GEKIT6' THEN 2	
+			WHEN 'GELCO1' THEN 2	--	was 1
+			WHEN 'GELTR2' THEN 2	--	was 1
 			WHEN 'GESCO3' THEN 2
-			WHEN 'GESTD5' THEN 1
-			WHEN 'GESTR4' THEN 1
-			WHEN 'PHMAN2' THEN 1
-			WHEN 'PHSAL1' THEN 1
+			WHEN 'GESTD5' THEN 2	--	was 1
+			WHEN 'GESTR4' THEN 2	--	was 1
+			WHEN 'PHMAN2' THEN 2	--	was 1
+			WHEN 'PHSAL1' THEN 2	--	was 1
 			WHEN 'PI9999' THEN 2
 			WHEN 'CI0001' THEN 2
 			WHEN 'TOGEN1' THEN 2
-			WHEN 'COFLS4' THEN 1
+			WHEN 'COFLS4' THEN 2	--	was 1
 			ELSE 2
 		END AS BackflushIfMaterial							/*Production - Allow Backflushing (tiipf051.bfcp) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 	,CASE kps.ItemGroup
 			WHEN 'COGEN1' THEN 2
 			WHEN 'COMAN2' THEN 2
-			WHEN 'DPMTO1' THEN 1
-			WHEN 'GEKIT6' THEN 1
+			WHEN 'DPMTO1' THEN 2	--	was 1
+			WHEN 'GEKIT6' THEN 2	--	was 1
 			WHEN 'GELCO1' THEN 2
 			WHEN 'GELTR2' THEN 2
 			WHEN 'GESCO3' THEN 2 
@@ -782,7 +795,15 @@ SELECT
 			ELSE 2
 		END AS BackflushMaterials							/*Production - Backflush Materials (tiipf051.bfep) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 	,1 AS BackflushHours									/*Production - Backflush Hours (tiipd051.bfhr)  (Will set "Use Global Item" to no when value <> 99)	| FALSE |Byte| |1;"Yes";2;"No";99;"Inherit from Item (defaults)" */
-	,2 AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+/* 27-02-2024 KL :  Change by JVD , Changed Case Statement */ 
+-- 	,2 AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+	,CASE 
+		WHEN kps.Itemgroup = 'DPMTO1' THEN 1
+		WHEN kps.SupplySource = 50 THEN 1
+		WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 2 
+		ELSE 1
+	 END AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+
 	,2 AS DirectProcessWHOrderLine							/*Production - Direct Process Warehouse Order Line (tiipd051.dris) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 
 	/* SERVICE */
@@ -831,9 +852,18 @@ FROM
 	LEFT JOIN ZZZ_Italy.dbo.BP_Conv bpc ON (itm.MG_CODFOR_PREF = bpc.KPraktor AND itm.MG_DITTA = 1)
 	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 0)
 	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 1)
-	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+
+/* 27-02-2024 KL: ProductType tabel has become SelectionCode with files SelectionCode instead of ProductType */
+--	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+	LEFT JOIN ZZZ_Italy.dbo.SelectionCode sec ON (itm.MG_TIP_REC = sec.Code AND itm.MG_DITTA = 1)
+
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)
-	LEFT JOIN
+	/* ---- Added 2024/02/14 ----  */
+	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV3 = scm.POV3 AND scm.Site = 'IT.POV.03')
+	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] mab ON ( mab.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
+	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] map ON ( map.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
+
+/*	LEFT JOIN
 		(
 			SELECT
 				 noc.NT_CONTO
@@ -857,6 +887,10 @@ FROM
 				NT_CLASSE = 'SOLL'
 				AND LEN(TRIM(NT_DESCR))>0
 		)sol ON (itm.MG_CODFOR_PREF =  sol.NT_CONTO AND itm.MG_DITTA = sol.NT_DITTA)
+
+
+*/ 
+
 	LEFT JOIN
 			(
 			SELECT
@@ -879,8 +913,9 @@ FROM
 					)bom ON (kps.Item = bom.Item)
 		)bol ON (kps.Item = bol.item)
 
-UNION ALL
+UNION ALL 
 
+-- PART 3 
 /* UNION ALL FOR IT.EXT.01 (SUBCONTRACTED ITEMS AND COMPONENTS */
 
 SELECT
@@ -1020,20 +1055,41 @@ SELECT
 
 	,CAST(NULL AS VARCHAR(200)) AS ItemGeneralText								/*General - Item Text (tttxt010.ctxt)	FALSE | | | | */
 	,0 AS TextIDGeneral											/*General - Text ID (tcibd150.txta)	FALSE |Long Integer| | */
-	,CAST(CASE WHEN sub.MainItem =  1 THEN bpc.POV1 ELSE
+
+/*	,CAST(CASE WHEN sub.MainItem =  1 THEN bpc.POV1 ELSE
 	  CASE WHEN kps.POV1 = 1 THEN 'IT0110'
 			ELSE
 				 CASE WHEN kps.POV2 = 1 THEN 'IT0210'
 					ELSE
 						CASE WHEN kps.POV3 = 1 THEN 'IT0300'
 							ELSE
-								CASE WHEN kps.RD = 1 THEN 'ITE100'				/* RD is in POV1 , infor POV1/POV2/POV3 and RD from excel mario */	
+								CASE WHEN kps.RD = 1 THEN 'ITE100'				/* RD is in POV1 , info POV1/POV2/POV3 and RD from excel mario */	
 									ELSE 'IT0110'
 									END
 							END
 					END
 			END	
-	 END AS VARCHAR(6)) AS OrderingWarehouse_tst			/*Ordering - Warehouse (tcibd250.cwar) - Reference to tcmcs003 Warehouses ** Mandatory for item ordering by Site | FALSE | null | 6 | |*/
+		END AS VARCHAR(6)) AS OrderingWarehouse_old			/*Ordering - Warehouse (tcibd250.cwar) - Reference to tcmcs003 Warehouses ** Mandatory for item ordering by Site | FALSE | null | 6 | |*/
+*/
+
+/* 27-02-2024 KL: Remove POV2 and RD + Change for readabilty  */ 
+
+	, CAST(
+			CASE 
+				WHEN sub.MainItem = 1 THEN bpc.POV1 
+				WHEN kps.POV1 = 1 THEN 'IT0110'
+			-- 	WHEN kps.POV2 = 1 THEN 'IT0210'
+				WHEN kps.POV3 = 1 THEN 'IT0300'
+			-- 	WHEN kps.RD = 1 THEN 'ITE100'
+				ELSE 'IT0110'  
+			END AS  VARCHAR(6)
+		) AS OrderingWarehouse								/*Ordering - Warehouse (tcibd250.cwar) - Reference to tcmcs003 Warehouses ** Mandatory for item ordering by Site | FALSE | null | 6 | |*/
+
+
+
+
+
+
 	,1 AS OrderMethod										/*Ordering - Order Method (tcibd250.omth) (HYVA) | FALSE | 1 |  | 1;"Lot for Lot (default)";2;"Economic Order Quantity";3;"Fixed Order Quantity";4;"Replenish to MAX.Inv."|*/
 	,10 AS OrderingTimeUnit									/*Ordering - Time Unit for OrderInterval, SafetyTime (tcibd250.oivu, tcibd250.tuni) (Will set "Use Global Item" to no when value <> 99)	| FALSE	| Byte |5;Hours;10;Days;99;"Inherit from Item (defaults)" | */
 	,CAST(1 AS FLOAT) AS OrderInterval										/*Ordering - Order Interval  (tcibd250.oint) (HYVA) | FALSE | 0 |  | |*/
@@ -1056,11 +1112,18 @@ SELECT
 	,0 AS ReorderPoint										/*Ordering - Reorder Point (tcibd250.reop) (HYVA) | FALSE | 0 |  | |*/
 
 /* ATTENTION : TO BE REPLACED BY EMPLOYEE TABLE */
-	,CAST(NULL AS VARCHAR(9)) AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+
+--	,CAST(NULL AS VARCHAR(9)) AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+	, map.LN_Employee_Planner AS Planner						/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+
 	,2 AS LotSizeCalculationAllowed							/*Ordering - Lot Size Calculation Allowed (tcibd250.auso)  (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
 
 	/* SALES */
-	,CAST
+
+/*	,CAST
 	(
 		CASE WHEN kps.POV1 = 1 THEN 'IT0110'
 			ELSE	
@@ -1075,6 +1138,23 @@ SELECT
 			END
 		END AS VARCHAR(6)
     ) AS  SalesWarehouse									/*Sales Warehouse (tdisa081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
+*/ 
+
+/* 27-02-2024 KL: Remove POV2 and RD + Change for readabilty  */ 
+
+	, CAST(
+			CASE 
+				WHEN sub.MainItem = 1 THEN bpc.POV1 
+				WHEN kps.POV1 = 1 THEN 'IT0110'
+	       	--	WHEN kps.POV2 = 1 THEN 'IT0210'
+				WHEN kps.POV3 = 1 THEN 'IT0300'
+			--  WHEN kps.RD = 1 THEN 'ITE100'
+				ELSE 'IT0110'  
+			END AS  VARCHAR(6)
+		) AS 	SalesWarehouse								/*Sales Warehouse (tdisa081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
+
+
+
 
 	
 	/* PURCHASE */
@@ -1116,7 +1196,8 @@ SELECT
 		END
 			AS VARCHAR(6)
 		) AS PurchaseStatisticsGroup						/*Purchase Statistics Group (tdipu081.csgp) - Reference to tcmcs044 Statistic groups | FALSE | null | 6 | |*/
-	,CAST(CASE WHEN sub.MainItem =  1 THEN bpc.POV1 ELSE
+
+/*	,CAST(CASE WHEN sub.MainItem =  1 THEN bpc.POV1 ELSE
 	  CASE WHEN kps.POV1 = 1 THEN 'IT0110'
 			ELSE
 				 CASE WHEN kps.POV2 = 1 THEN 'IT0210'
@@ -1130,10 +1211,33 @@ SELECT
 					END
 			END	
 	 END AS VARCHAR(6)) PurchaseWarehouse									/*Purchase Warehouse (tdipu081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
+*/ 
+
+	,CAST(
+		CASE 
+			WHEN sub.MainItem = 1 THEN bpc.POV1 
+			WHEN kps.POV1 = 1 THEN 'IT0110'
+		-- 	WHEN kps.POV2 = 1 THEN 'IT0210'
+			WHEN kps.POV3 = 1 THEN 'IT0300'
+		--  WHEN kps.RD = 1 THEN 'ITE100'
+			ELSE 'IT0110'  
+			END AS  VARCHAR(6)
+		) AS PurchaseWarehouse												/*Purchase Warehouse (tdipu081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/		
+
+
+
 	,CAST(CASE WHEN bpc.[Business Partner] IS NULL THEN NULL ELSE bpc.[Business Partner] END AS VARCHAR(9)) AS PurchaseBuyFromBP			/*Purchase Buy-from Business Partner (tdipu081.otbp)   - References tcom120 Buy-from Business Partners | FALSE | null | 9 | |*/
 
 	/* ATTENTION :  TO BE REPLACED BY EMPLOYEE TABLE */
-	,CAST(NULL AS VARCHAR(9)) AS Buyer						/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+
+
+-- ,CAST(NULL AS VARCHAR(9)) AS Buyer						/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+	, mab.LN_Employee_Buyer AS Buyer			/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+
+
 	,CAST (
     	CASE 
         	WHEN pus.NettPrice IS NULL 
@@ -1153,7 +1257,9 @@ SELECT
 		ELSE 1
 		END AS ReleaseToWarehousing							/*Purchase - Release to Warehousing (tdipu081.retw)  (HYVA) ** NOTE: Only applicable for cost items. For other items types, this field will always be set to yes. | FALSE | 1 |  | 1;"Yes";2;"No"|*/
 	,2 AS Inspection										/*Purchase - Inspection (tdipu081.qual) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
-	,CAST(NULL AS SMALLDATETIME) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/
+/* 27-02-2024 KL:  Fill LatestPurchasePriceDate from ZZZ_Italy.dbo.PurchasePrices field Lastdate */ 
+--	,CAST(NULL AS SMALLDATETIME) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/
+ 	,CAST(pup.LastDate as SMALLDATETIME ) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/     
 	,0 AS  AveragePurchasePrice 							/* Will create record when date is populated */
 	,CAST (
     	CASE 
@@ -1172,32 +1278,48 @@ SELECT
 	,2 AS CriticalForInventory								/*Production - Critical for Inventory (tiipf051.cick)  (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
 	,0 AS ScrapPercentage									/*Production - Scrap Percentage (tiipf051.scpf) (HYVA) | FALSE | 0 |  | |*/
 	,0 AS ScrapQuantity										/*Production - Scrap Quantity (tiipf051.scpq) (HYVA) | FALSE | 0 |  | |*/
-	,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom			
+
+/*  27-02-2024 KL: Changed Phantom and Case statement*/ 
+--	,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom			
 															/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+    , CASE 
+        WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+        WHEN kps.SupplySource = 50 THEN 2
+        WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+        ELSE 2
+    END AS Phantom												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+
+
+
 	,CAST(NULL AS VARCHAR(9)) AS ShopFloorPlanner			/*Production - Shop Floor Planner (tiipf051.sfpl) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+/* 27-02-2024 KL  BackflusIfMaterial must be 2 ( Info Gideon ) */
+/* Keep ItemGroups for reference when needed , all values 1 changed to 2 */
 	,CASE kps.ItemGroup
-			WHEN 'COGEN1' THEN 1
-			WHEN 'COMAN2' THEN 1
-			WHEN 'DPMTO1' THEN 2
+			WHEN 'COGEN1' THEN 2	-- was 1
+			WHEN 'COMAN2' THEN 2	-- was 1
+			WHEN 'DPMTO1' THEN 2	
 			WHEN 'GEKIT6' THEN 2
-			WHEN 'GELCO1' THEN 1
-			WHEN 'GELTR2' THEN 1
+			WHEN 'GELCO1' THEN 1	-- was 1
+			WHEN 'GELTR2' THEN 1	-- was 1
 			WHEN 'GESCO3' THEN 2
-			WHEN 'GESTD5' THEN 1
-			WHEN 'GESTR4' THEN 1
-			WHEN 'PHMAN2' THEN 1
-			WHEN 'PHSAL1' THEN 1
-			WHEN 'PI9999' THEN 2
+			WHEN 'GESTD5' THEN 2	-- was 1
+			WHEN 'GESTR4' THEN 2	-- was 1
+			WHEN 'PHMAN2' THEN 2	-- was 1
+			WHEN 'PHSAL1' THEN 2	-- was 1
+			WHEN 'PI9999' THEN 2	
 			WHEN 'CI0001' THEN 2
 			WHEN 'TOGEN1' THEN 2
-			WHEN 'COFLS4' THEN 1
+			WHEN 'COFLS4' THEN 2	-- was 1
 			ELSE 2
 		END AS BackflushIfMaterial							/*Production - Allow Backflushing (tiipf051.bfcp) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+/* 27-02-2024 KL  BackflusIfMaterial must be 2 ( Info Gideon ) */
+/* Keep ItemGroups for reference when needed , all values 1 changed to 2 */
 	,CASE kps.ItemGroup
 			WHEN 'COGEN1' THEN 2
 			WHEN 'COMAN2' THEN 2
-			WHEN 'DPMTO1' THEN 1
-			WHEN 'GEKIT6' THEN 1
+			WHEN 'DPMTO1' THEN 2	-- was 1
+			WHEN 'GEKIT6' THEN 2	-- was 1
 			WHEN 'GELCO1' THEN 2
 			WHEN 'GELTR2' THEN 2
 			WHEN 'GESCO3' THEN 2
@@ -1210,9 +1332,17 @@ SELECT
 			WHEN 'TOGEN1' THEN 2
 			WHEN 'COFLS4' THEN 2
 			ELSE 2
-		END AS BackflushMaterials								/*Production - Backflush Materials (tiipf051.bfep) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+		END AS BackflushMaterials							/*Production - Backflush Materials (tiipf051.bfep) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 	,1 AS BackflushHours									/*Production - Backflush Hours (tiipd051.bfhr)  (Will set "Use Global Item" to no when value <> 99)	| FALSE |Byte| |1;"Yes";2;"No";99;"Inherit from Item (defaults)" */
-	,2 AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+/* 27-02-2024 KL : change by JVD , Changed Case Statement */ 
+--	,2 AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+	,CASE 
+		WHEN kps.Itemgroup = 'DPMTO1' THEN 1
+		WHEN kps.SupplySource = 50 THEN 1
+		WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 2 
+		ELSE 1
+	 END AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+	
 	,2 AS DirectProcessWHOrderLine							/*Production - Direct Process Warehouse Order Line (tiipd051.dris) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 
 	/* SERVICE */
@@ -1286,14 +1416,15 @@ FROM
 								,CAST(kpc.ItemLnCE AS VARCHAR(38))  AS MaterialItem							/*Item segment of Sub Item (tisub110.sitm) - References to tcibd001 General Item Data | FALSE | '' |Text | 38 | |*/
 								,CAST(bom.DB_QTA_UTILIZZO AS FLOAT) AS MaterialQuantity						/*Material Quantity (tisub110.qana) - Material Quantity | TRUE | 1 |Decimal |  | >0|*/
 								,0 AS ScrapPercentage														/*Scrap Percentage (tisub110.scpf) |  | 0 |Decimal |  | |*/
+/* 27-02-2024 KL:  Remove POV2 and RD  */ 
 								, CAST(
-								  CASE
-									WHEN kps.POV1 = 1 THEN 'IT0110'
-									WHEN kps.POV2 = 1 THEN 'IT0210'
-									WHEN kps.POV3 = 1 THEN 'IT0300'
-									WHEN kps.RD = 1 THEN 'ITE100'
-									ELSE 'IT0110'															/* ATTENTION : check with DMF warehouse "empty" */
-								  END AS VARCHAR(6)
+								  	CASE
+										WHEN kps.POV1 = 1 THEN 'IT0110'
+									--	WHEN kps.POV2 = 1 THEN 'IT0210'
+										WHEN kps.POV3 = 1 THEN 'IT0300'
+									--	WHEN kps.RD = 1 THEN 'ITE100'
+										ELSE 'IT0110'															/* ATTENTION : check with DMF warehouse "empty" */
+								  	END AS VARCHAR(6)
 								) AS  SupplyingWarehouse													/*Supplying Warehouse (tisub110.cwar)  - References tcmcs003 Warehouses |  | '' |Text | 6 | |*/
 							FROM
 								KPRAKTOR.SIAPR.DISBASE bom
@@ -1337,15 +1468,16 @@ FROM
 								,CAST(kpc.ItemLnCE AS VARCHAR(38))  AS MaterialItem							/*Item segment of Sub Item (tisub110.sitm) - References to tcibd001 General Item Data | FALSE | '' |Text | 38 | |*/
 								,CAST(bom.DB_QTA_UTILIZZO AS FLOAT) AS MaterialQuantity						/*Material Quantity (tisub110.qana) - Material Quantity | TRUE | 1 |Decimal |  | >0|*/
 								,0 AS ScrapPercentage														/*Scrap Percentage (tisub110.scpf) |  | 0 |Decimal |  | |*/
+/* 27-02-2024 KL:  Remove POV2 and RD  */
 								, CAST(
-								  CASE
-									WHEN kps.POV1 = 1 THEN 'IT0110'
-									WHEN kps.POV2 = 1 THEN 'IT0210'
-									WHEN kps.POV3 = 1 THEN 'IT0300'
-									WHEN kps.RD = 1 THEN 'ITE100'
-									ELSE 'IT0110'															/* ATTENTION : check with DMF warehouse "empty" */
-								  END AS VARCHAR(6)
-								) AS  SupplyingWarehouse													/*Supplying Warehouse (tisub110.cwar)  - References tcmcs003 Warehouses |  | '' |Text | 6 | |*/
+								  		CASE
+											WHEN kps.POV1 = 1 THEN 'IT0110'
+										--	WHEN kps.POV2 = 1 THEN 'IT0210'
+											WHEN kps.POV3 = 1 THEN 'IT0300'
+										--	WHEN kps.RD = 1 THEN 'ITE100'
+											ELSE 'IT0110'															/* ATTENTION : check with DMF warehouse "empty" */
+								  		END AS VARCHAR(6)
+										) AS  SupplyingWarehouse													/*Supplying Warehouse (tisub110.cwar)  - References tcmcs003 Warehouses |  | '' |Text | 6 | |*/
 							FROM
 								KPRAKTOR.SIAPR.DISBASE bom
 								JOIN KPRAKTOR.SIAPR.ANAMAG itm ON (bom.DB_CODICE_PADRE = itm.MG_CODICE AND bom.DB_DITTA = itm.MG_DITTA)	
@@ -1367,9 +1499,17 @@ FROM
 	LEFT JOIN ZZZ_Italy.dbo.BP_Conv bpc ON (itm.MG_CODFOR_PREF = bpc.KPraktor AND itm.MG_DITTA = 1)
 	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 0)
 	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 1)
-	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+/* 27-02-2024 KL ProductType table has become SelectionCode with field SelectionCode instead of ProductType */
+--	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+	LEFT JOIN ZZZ_Italy.dbo.SelectionCode sec ON (itm.MG_TIP_REC = sec.Code AND itm.MG_DITTA = 1)
+
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)
-	LEFT JOIN
+	/*---- Added 20240214 JVD ----*/
+	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV1 = scm.POV1 AND scm.Site = 'IT.EXT.01')
+	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] mab ON ( mab.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
+	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] map ON ( map.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
+
+/*	LEFT JOIN
 		(
 			SELECT
 				 noc.NT_CONTO
@@ -1393,6 +1533,9 @@ FROM
 				NT_CLASSE = 'SOLL'
 				AND LEN(TRIM(NT_DESCR))>0
 		)sol ON (itm.MG_CODFOR_PREF =  sol.NT_CONTO AND itm.MG_DITTA = sol.NT_DITTA)
+
+*/ 
+
 	LEFT JOIN
 			(
 			SELECT
@@ -1416,12 +1559,15 @@ FROM
 		)bol ON (kps.Item = bol.item)
 WHERE
 /* 17-07-2023 RD added , RD is in POV1 */
-	(kps.POV1 = 1
-	OR kps.POV2 = 1	
-	OR kps.RD = 1
-	)
+/* 27-02-2024 KL: Remove POV2 and RD  */ 
+	(kps.POV1 <> 0 )
+--	OR kps.POV2 = 1	
+--	OR kps.RD = 1
+	
 
-UNION ALL
+
+UNION ALL 
+-- PART 4 
 /* UNION ALL FOR IT.EXT.03 SUBCONTRACTING */
 
 SELECT
@@ -1574,7 +1720,15 @@ SELECT
 	,CAST(1 AS FLOAT) AS EconomicOrderQuantity
 															/*Ordering - Economic Order Quantity (tcibd250.ecoq) (HYVA) | FALSE | 1 |  | |*/
 	,0 AS ReorderPoint										/*Ordering - Reorder Point (tcibd250.reop) (HYVA) | FALSE | 0 |  | |*/
-	,CAST(NULL AS VARCHAR(9)) AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+
+-- 	,CAST(NULL AS VARCHAR(9)) AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+	, map.LN_Employee_Planner AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+
+
+
+
 	,2 AS LotSizeCalculationAllowed							/*Ordering - Lot Size Calculation Allowed (tcibd250.auso)  (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
 
 	/* SALES */
@@ -1620,7 +1774,14 @@ SELECT
 		) AS PurchaseStatisticsGroup						/*Purchase Statistics Group (tdipu081.csgp) - Reference to tcmcs044 Statistic groups | FALSE | null | 6 | |*/
 	,CAST(CASE WHEN sub.MainItem =  1 THEN bpc.POV3 ELSE 'IT0300'END AS VARCHAR(6)) AS PurchaseWarehouse				/*Purchase Warehouse (tdipu081.cwar) - Reference to tcmcs003 Warehouses | FALSE | null | 6 | |*/
 	,CAST(CASE WHEN bpc.[Business Partner] IS NULL THEN NULL ELSE bpc.[Business Partner] END AS VARCHAR(9)) AS PurchaseBuyFromBP		/*Purchase Buy-from Business Partner (tdipu081.otbp)   - References tcom120 Buy-from Business Partners | FALSE | null | 9 | |*/
-	,CAST(NULL AS VARCHAR(9)) AS Buyer						/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+
+--	,CAST(NULL AS VARCHAR(9)) AS Buyer						/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+	, mab.LN_Employee_Buyer AS 	Buyer					/*Purchase - Buyer (tdipu081.buyr)   - References tccom001 Employees | FALSE | null | 9 | |*/
+
+
+
 	,CAST(CASE WHEN kpp.SupplyTime IS NULL THEN 0 ELSE kpp.SupplyTime END AS FLOAT) AS SupplyTime	/*Purchase - Supply Time (tdipu081.suti) | FALSE | 0 |  | |*/
 	,CAST (
 			CASE 
@@ -1638,11 +1799,12 @@ SELECT
 		ELSE 1
 		END AS ReleaseToWarehousing							/*Purchase - Release to Warehousing (tdipu081.retw)  (HYVA) ** NOTE: Only applicable for cost items. For other items types, this field will always be set to yes. | FALSE | 1 |  | 1;"Yes";2;"No"|*/
 	,2 AS Inspection										/*Purchase - Inspection (tdipu081.qual) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
-	,CAST(NULL AS SMALLDATETIME) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/
-                                                            /* Will create record when date is populated */
+/* 27-02-2024 KL:  Fill LatestPurchasePriceDate from ZZZ_Italy.dbo.PurchasePrices field Lastdate */ 
+--	,CAST(NULL AS SMALLDATETIME) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/
+ 	,CAST(pup.LastDate as SMALLDATETIME ) AS LatestPurchasePriceDate /*Purchase - LatestPurchasePriceDate (tdipu180.ltpp) | FALSE | null |  Date/Time | | |*/                                                              /* Will create record when date is populated */
+
 	,0 AS  AveragePurchasePrice
 	,0 AS  LatestPurchasePrice
-
 	,CAST(NULL AS VARCHAR(200)) AS ItemPurchaseText			/*Purchase - Item Text (tttxt010.ctxt)	FALSE |  Memo | | | */
 	,0 AS TextIDPurchase									/*Purchase - Text ID  (tdipu081.txtp)	FALSE | Long Integer | | | */
 
@@ -1655,30 +1817,32 @@ SELECT
 	,0 AS ScrapQuantity										/*Production - Scrap Quantity (tiipf051.scpq) (HYVA) | FALSE | 0 |  | |*/
 	,CAST(kpp.Phantom AS FLOAT) AS Phantom  				/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 	,CAST(NULL AS VARCHAR(9)) AS ShopFloorPlanner			/*Production - Shop Floor Planner (tiipf051.sfpl) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
+/* 27-02-2024 KL  BackflusIfMaterial must be 2 ( Info Gideon ) */
+/* Keep ItemGroups for reference when needed , all values 1 changed to 2 */
 	,CASE kps.ItemGroup
-			WHEN 'COGEN1' THEN 1
-			WHEN 'COMAN2' THEN 1
+			WHEN 'COGEN1' THEN 1	-- Was 1 
+			WHEN 'COMAN2' THEN 1	-- Was 1 
 			WHEN 'DPMTO1' THEN 2
 			WHEN 'GEKIT6' THEN 2
 			WHEN 'GELCO1' THEN 1
-			WHEN 'GELTR2' THEN 1
+			WHEN 'GELTR2' THEN 1	-- Was 1 
 			WHEN 'GESCO3' THEN 2
-			WHEN 'GESTD5' THEN 1
-			WHEN 'GESTR4' THEN 1
-			WHEN 'PHMAN2' THEN 1
-			WHEN 'PHSAL1' THEN 1
+			WHEN 'GESTD5' THEN 1	-- Was 1 
+			WHEN 'GESTR4' THEN 1	-- Was 1 
+			WHEN 'PHMAN2' THEN 1	-- Was 1 
+			WHEN 'PHSAL1' THEN 1	-- Was 1 
 			WHEN 'PI9999' THEN 2
 			WHEN 'CI0001' THEN 2
 			WHEN 'TOGEN1' THEN 2
-			WHEN 'COFLS4' THEN 1
+			WHEN 'COFLS4' THEN 1	-- Was 1 
 			ELSE 2
 		END AS BackflushIfMaterial							/*Production - Allow Backflushing (tiipf051.bfcp) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 	,CASE kps.ItemGroup
 			WHEN 'COGEN1' THEN 2
 			WHEN 'COMAN2' THEN 2
-			WHEN 'DPMTO1' THEN 1
-			WHEN 'GEKIT6' THEN 1
-			WHEN 'GELCO1' THEN 2
+			WHEN 'DPMTO1' THEN 1	-- Was 1 
+			WHEN 'GEKIT6' THEN 1	-- Was 1 
+			WHEN 'GELCO1' THEN 2	
 			WHEN 'GELTR2' THEN 2
 			WHEN 'GESCO3' THEN 2 
 			WHEN 'GESTD5' THEN 2
@@ -1692,7 +1856,15 @@ SELECT
 			ELSE 2
 		END AS BackflushMaterials							/*Production - Backflush Materials (tiipf051.bfep) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 	,1 AS BackflushHours									/*Production - Backflush Hours (tiipd051.bfhr)  (Will set "Use Global Item" to no when value <> 99)	| FALSE |Byte| |1;"Yes";2;"No";99;"Inherit from Item (defaults)" */
-	,2 AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+/* 27-02-2024 KL :   change by JVD Changed Case Statement */ 
+--	,2 AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+	,CASE 
+		WHEN kps.Itemgroup = 'DPMTO1' THEN 1
+		WHEN kps.SupplySource = 50 THEN 1
+		WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 2 
+		ELSE 1
+	 END AS DirectInitiateInventoryIssue						/*Production - Direct Initiate Inventory Issue (tiipf051.drin) (HYVA) | FALSE | null |  | 1;"Yes";2;"No (default)"|*/
+
 	,2 AS DirectProcessWHOrderLine							/*Production - Direct Process Warehouse Order Line (tiipd051.dris) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 
 	/* SERVICE */
@@ -1782,7 +1954,6 @@ FROM
 								AND kps.SupplySource IN ('50')
 								AND bpc.[Business Partner] IS NOT NULL
 						)sub
-
 					UNION ALL
 
 
@@ -1831,8 +2002,17 @@ FROM
 	LEFT JOIN ZZZ_Italy.dbo.BP_Conv bpc ON (itm.MG_CODFOR_PREF = bpc.KPraktor AND itm.MG_DITTA = 1)
 	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 0)
 	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 1)
-	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+/* 27-02-2024 KL ProductType table has become SelectionCode with field SelectionCode instead of ProductType */
+--	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
+	LEFT JOIN ZZZ_Italy.dbo.SelectionCode sec ON (itm.MG_TIP_REC = sec.Code AND itm.MG_DITTA = 1)
+
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)
+	
+	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] mab ON ( mab.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
+	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] map ON ( map.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
+
+	
+/*	
 	LEFT JOIN
 		(
 			SELECT
@@ -1857,6 +2037,11 @@ FROM
 				NT_CLASSE = 'SOLL'
 				AND LEN(TRIM(NT_DESCR))>0
 		)sol ON (itm.MG_CODFOR_PREF =  sol.NT_CONTO AND itm.MG_DITTA = sol.NT_DITTA)
+*/ 
+
+
+
+
 	LEFT JOIN
 			(
 			SELECT
