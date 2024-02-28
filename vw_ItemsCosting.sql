@@ -114,7 +114,7 @@ SELECT
 */
 
 /* 28-02-2024 KL:  Map warehouse to warhouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
-, CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse_scm 
+, CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse
 
 /* 30-08-2023  Items-Costing not correct for Cost Items */ 
 /*	,CASE WHEN kps.POV1 = 1 OR kps.POV2 = 1 THEN 50 ELSE  	-- 50;"Intercompany Transfer
