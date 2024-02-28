@@ -9,13 +9,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-
-
-
-
-
-
-ALTER VIEW [dbo].[vw_ItemsCosting] AS
+-- ALTER VIEW [dbo].[vw_ItemsCosting] AS
 
 /*
 		ATTENTION : Risks: 
