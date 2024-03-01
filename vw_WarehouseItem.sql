@@ -11,9 +11,9 @@ GO
 -----------------    Warehouse fixed values replaced by scm.values : OPEN  : REMOVE the FIXED WAREHOUSE IN SELECT -------------------
 -----------------    												 OPEN : Warehouse_scm has to be changed to Warehouse ------------
 -----------------  													 OPEN : Remove öld"Phantom lines                     ------------
------------------    Full view cannot be run (yet) , just the part until the SUBCONTRACTOR WAREHOUSES IT.EXT.01          ------------
+-----------------    Full view cannot be run (yet) , just the part until the SUBCONTRACTOR WAREHOUSES IT.EXT.01   ALL COMMENTED OUT       ------------
 
--- ALTER VIEW [dbo].[vw_WarehouseItem] AS 
+ALTER VIEW [dbo].[vw_WarehouseItem] AS 
 
 /* ----RAW MATERIAL WAREHOUSES ----*/
 
@@ -431,9 +431,15 @@ WHERE
 -- 	 kps.POV3 = 1 AND     29-02-2024  POV3=1 already in Join 
 	 pha.phantom = 2
 
+
+-----------  SUBCONTRACTOR WAREHOUSES : TO BE FINISHED  ------------------------- ALL COMMENTED OUT 
+/* 
+
 UNION ALL
 
------------  SUBCONTRACTOR WAREHOUSES : TO BE FINISHED  -------------------------
+-----------  SUBCONTRACTOR WAREHOUSES : TO BE FINISHED  ------------------------- ALL COMMENTED OUT 
+
+
 
 /* SUBCONTRACTOR WAREHOUSES IT.EXT.01 */
 
@@ -791,5 +797,5 @@ FROM
 WHERE
 	 pha.phantom = 2
 GO
-
+*/ 
 
