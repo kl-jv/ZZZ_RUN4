@@ -1,7 +1,7 @@
 USE [ZZZ_RUN4]
 GO
 
-/****** Object:  View [dbo].[vw_ItemPurchaseBPbyItem_new_21-02-2024]    Script Date: 3/1/2024 10:04:12 AM ******/
+/****** Object:  View [dbo].[vw_ItemPurchaseBPbyItem]    Script Date: 3/1/2024 13:08 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -12,7 +12,7 @@ GO
 
 
 
---ALTER VIEW [dbo].[vw_ItemPurchaseBPbyItem_new_21-02-2024] AS 
+ALTER VIEW [dbo].[vw_ItemPurchaseBPbyItem] AS 
 
 				/* By Site */
 				/* IT.POV.01 */
