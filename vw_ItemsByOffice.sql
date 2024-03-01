@@ -79,8 +79,8 @@ SELECT
 FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
 /*  21-02-2024 : KL POV1 <> 0 ,  Remove POV2 , RD must be kept  */
- 	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999') AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD=1))
---	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999') AND (kps.POV1 <> 0 OR  kps.RD=1))
+--	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999') AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD=1))
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999') AND (kps.POV1 <> 0 OR  kps.RD=1))
 
 
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)

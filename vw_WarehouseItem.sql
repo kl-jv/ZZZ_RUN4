@@ -8,13 +8,22 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
+-----------------    Warehouse fixed values replaced by scm.values : OPEN  : REMOVE the FIXED WAREHOUSE IN SELECT -------------------
+-----------------    												 OPEN : Warehouse_scm has to be changed to Warehouse ------------
+-----------------  													 OPEN : Remove öld"Phantom lines                     ------------
+-----------------    Full view cannot be run (yet) , just the part until the SUBCONTRACTOR WAREHOUSES IT.EXT.01          ------------
 
-ALTER VIEW [dbo].[vw_WarehouseItem] AS 
+-- ALTER VIEW [dbo].[vw_WarehouseItem] AS 
 
 /* ----RAW MATERIAL WAREHOUSES ----*/
 
+
+/* IT0110 */ 
 SELECT
-	 CAST('IT0110' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses                                                                         ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+	 CAST('IT0110' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses	ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+/* 28-02-2024 KL: Get warehouse from ZZZ_Italy.dbo.SCModelMap */ 									/*Warehouse (cwar)  Reference to tcmcs003 Warehouses	ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+	,CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse_scm
+
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS Project														/*Project segment of Item (item)  Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS Item														/*Item (item)  Reference to whwmd400 Items | TRUE | null | 38 | |*/
 	,CAST(2 AS FLOAT) AS UseItemOrderingData														/*Use Item Ordering data (uidt) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
@@ -39,16 +48,39 @@ SELECT
 
 FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV1 = 1)
+/* 28-02-2024 KL:  POV1 to  KPS.POV1  = 2  = IT0110  */ 
+--	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV1 = 1)
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV1 = 2 )
 	LEFT JOIN KPRAKTOR.SIAPR.ANAGES pla ON (itm.MG_CODICE = pla.GE_CODICE_ART AND itm.MG_DITTA = pla.GE_DITTA)
+
+/* 28-02-2024 KL:  JOIN to Map warehouse to warehouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
+	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV1 = scm.POV1 AND scm.Site = 'IT.POV.01')
+
 	LEFT JOIN
 		(
 			SELECT
 				 itm.MG_CODICE
 				,itm.MG_DITTA
+
+
 				,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom
+
+
+
+		, CASE 
+				WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+				WHEN kps.SupplySource = 50 THEN 2
+				WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+				ELSE 2
+			END AS Phantom_new 												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+
+
 			FROM
 				KPRAKTOR.SIAPR.ANAMAG itm
+
+/* 29-02-2024 KL:  Join added to kps to get phantom value , based on ItemGroup,Supply Source */ 
+				JOIN ZZZ_Italy.dbo.KPsource kps ON ( kps.Item = itm.MG_CODICE )
+
 				LEFT JOIN
 					(
 						SELECT
@@ -64,6 +96,10 @@ FROM
 							,bom.DB_DITTA
 					)bol ON (itm.MG_CODICE = bol.Item AND itm.MG_DITTA = bol.DB_DITTA)
 			)pha ON (itm.MG_CODICE = pha.MG_CODICE AND itm.MG_DITTA = pha.MG_DITTA)
+
+
+
+	
 	
 	LEFT JOIN
 		(
@@ -87,20 +123,27 @@ FROM
 				)bom ON (kps.Item = bom.Item)
 		)bol ON (kps.Item = bol.item)
 
+
+
 WHERE
---	 (kps.POV1 = 1 OR kps.POV2 = 1) ---- Combined POV 1 and POV2 into one warehouse IT0110 JVD 20230505
-/* 21-07-2023 * UNDO single warehouse POV1- POV2  */
-		kps.POV1 = 1	AND															--				CHECK with kps.POV1 activated and inactivated ( diff no of recs) POV1 = i inactive 70.0766 recs
+
+/* 28-02-2024 KL:  kps.POV1 is already in JOIN   now with kps.POV1 = 2 ( =  IT0110 see ZZZ_Italy.dbo.SCModelMap scm ) */ 
+--		kps.POV1 = 1															
 		pha.phantom = 2
 
 
+/* ITE100 NOT APPLICABLE ANYMORE */ 
+/* 
 UNION ALL 
 
 /* 03-08-2023 ADDED Experimental Warehouse = R&D = ITE100 */ 
 
 
-SELECT
+ SELECT
 	 CAST('ITE100' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses                                                                         ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+
+	,CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse_scm
+
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS Project														/*Project segment of Item (item)  Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS Item														/*Item (item)  Reference to whwmd400 Items | TRUE | null | 38 | |*/
 	,CAST(2 AS FLOAT) AS UseItemOrderingData														/*Use Item Ordering data (uidt) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
@@ -174,13 +217,21 @@ FROM
 		)bol ON (kps.Item = bol.item)
 
 WHERE
-		kps.RD = 1	AND			-- Is already in JOIN can be removed ?? check this 								
+							
 		pha.phantom = 2
+
+*/ 
+
 
 UNION ALL
 
+/* IT0210 */ 
+
 SELECT
 	 CAST('IT0210' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses                                                                         ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+/* 29-02-2024 KL: Get warhouse from ZZZ_Italy.dbo.SCModelMap */ 									/*Warehouse (cwar)  Reference to tcmcs003 Warehouses	ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+	,CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse_scm
+
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS Project														/*Project segment of Item (item)  Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS Item														/*Item (item)  Reference to whwmd400 Items | TRUE | null | 38 | |*/
 	,CAST(2 AS FLOAT) AS UseItemOrderingData														/*Use Item Ordering data (uidt) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
@@ -205,16 +256,36 @@ SELECT
 
 FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV2 = 1)
+
+-- 	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV2 = 1)
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV1 = 3 ) -- POV with value 3 = IT0210
 	LEFT JOIN KPRAKTOR.SIAPR.ANAGES pla ON (itm.MG_CODICE = pla.GE_CODICE_ART AND itm.MG_DITTA = pla.GE_DITTA)
+
+/* 28-02-2024 KL:  Map warehouse to warhouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
+	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV1 = scm.POV1 AND scm.Site = 'IT.POV.01')
+
 	LEFT JOIN
 		(
 			SELECT
 				 itm.MG_CODICE
 				,itm.MG_DITTA
+
+
 				,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom
+
+/* 29-02-2024 KL:  Phantom based on ItemGroup , SuppluSource  */ 
+				, CASE 
+						WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+						WHEN kps.SupplySource = 50 THEN 2
+						WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+						ELSE 2
+					END AS Phantom_new 		
+
 			FROM
 				KPRAKTOR.SIAPR.ANAMAG itm
+/* 29-02-2024 KL:  Join added to kps to get phantom value , based on ItemGroup,Supply Source */ 
+				JOIN ZZZ_Italy.dbo.KPsource kps ON ( kps.Item = itm.MG_CODICE )
+
 				LEFT JOIN
 					(
 						SELECT
@@ -254,17 +325,20 @@ FROM
 		)bol ON (kps.Item = bol.item)
 
 WHERE
-	 kps.POV2 = 1
-	 AND pha.phantom = 2
--- */
+-- 	 kps.POV2 = 1 AND 
+	 pha.phantom = 2
+
 
 UNION ALL
 
 
 /* ----SPARE PARTS WAREHOUSE ---*/
-
+/* IT0300 */ 
 SELECT
 	 CAST('IT0300' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses                                                                         ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+/* 28-02-2024 KL: Get warehouse from ZZZ_Italy.dbo.SCModelMap */ 									/*Warehouse (cwar)  Reference to tcmcs003 Warehouses	ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+	,CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse_scm
+
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS Project														/*Project segment of Item (item)  Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS Item														/*Item (item)  Reference to whwmd400 Items | TRUE | null | 38 | |*/
 	,CAST(2 AS FLOAT) AS UseItemOrderingData														/*Use Item Ordering data (uidt) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
@@ -289,7 +363,10 @@ SELECT
 
 FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV3 = 1)
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV3 = 1)  
+/* 29-02-2024 KL:  Map warehouse to warhouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
+	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV3 = scm.POV3 AND scm.Site = 'IT.POV.03')
+		
 	LEFT JOIN KPRAKTOR.SIAPR.ANAGES pla ON (itm.MG_CODICE = pla.GE_CODICE_ART AND itm.MG_DITTA = pla.GE_DITTA)
 	LEFT JOIN
 		(
@@ -297,8 +374,21 @@ FROM
 				 itm.MG_CODICE
 				,itm.MG_DITTA
 				,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06')  THEN 1 ELSE 2 END AS Phantom
+
+		, CASE 
+				WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+				WHEN kps.SupplySource = 50 THEN 2
+				WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+				ELSE 2
+			END AS Phantom_new 												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+
 			FROM
 				KPRAKTOR.SIAPR.ANAMAG itm
+
+/* 29-02-2024 KL:  Join added to kps to get phantom value , based on ItemGroup,Supply Source */ 
+				JOIN ZZZ_Italy.dbo.KPsource kps ON ( kps.Item = itm.MG_CODICE )
+
+
 				LEFT JOIN
 					(
 						SELECT
@@ -338,10 +428,12 @@ FROM
 		)bol ON (kps.Item = bol.item)
 
 WHERE
-	 kps.POV3 = 1
-	 AND pha.phantom = 2
+-- 	 kps.POV3 = 1 AND     29-02-2024  POV3=1 already in Join 
+	 pha.phantom = 2
 
 UNION ALL
+
+-----------  SUBCONTRACTOR WAREHOUSES : TO BE FINISHED  -------------------------
 
 /* SUBCONTRACTOR WAREHOUSES IT.EXT.01 */
 
