@@ -1,7 +1,7 @@
 USE [ZZZ_RUN4]
 GO
 
-/****** Object:  View [dbo].[vw_ItemPurchaseBPbyItem]    Script Date: 20/12/2023 11:55:28 ******/
+/****** Object:  View [dbo].[vw_ItemPurchaseBPbyItem_new_21-02-2024]    Script Date: 3/1/2024 10:04:12 AM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -10,7 +10,9 @@ GO
 
 
 
-ALTER VIEW [dbo].[vw_ItemPurchaseBPbyItem] AS 
+
+
+--ALTER VIEW [dbo].[vw_ItemPurchaseBPbyItem_new_21-02-2024] AS 
 
 				/* By Site */
 				/* IT.POV.01 */
@@ -43,7 +45,11 @@ SELECT
 
 FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD = 1))
+
+/* 21-02-2024 : KL POV1 <> 0 ,  Remove POV2 , RD must be kept  */
+--	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD = 1))
+
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 <>  0 OR kps.RD = 1))
 	LEFT JOIN KPRAKTOR.SIAPR.ANAGES mrp ON (itm.MG_CODICE = mrp.GE_CODICE_ART AND itm.MG_DITTA = mrp.GE_DITTA)
 	LEFT JOIN ZZZ_Italy.dbo.BP_Conv bpc ON (itm.MG_CODFOR_PREF = bpc.KPraktor AND itm.MG_DITTA = 1)
 WHERE
@@ -124,7 +130,9 @@ SELECT
 
 FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD = 1 ))
+/* 21-02-2024 : KL POV1 <> 0 ,  Remove POV2 , RD must be kept  */ 
+--	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD = 1 ))
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 <> 0 OR kps.RD = 1 ))
 	JOIN
 		(
 			SELECT
@@ -160,7 +168,9 @@ FROM
 							FROM
 								KPRAKTOR.SIAPR.DISBASE bom
 								JOIN KPRAKTOR.SIAPR.ANAMAG itm ON (bom.DB_CODICE_PADRE = itm.MG_CODICE AND bom.DB_DITTA = itm.MG_DITTA)	
-								JOIN ZZZ_Italy.dbo.KPSource kps ON (bom.DB_CODICE_PADRE = kps.Item AND bom.DB_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD = 1 ))
+/* 21-02-2024  KL:  POV1 <> 0 ,  Remove POV2 , RD must be kept  */
+-- 								JOIN ZZZ_Italy.dbo.KPSource kps ON (bom.DB_CODICE_PADRE = kps.Item AND bom.DB_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD = 1 ))
+								JOIN ZZZ_Italy.dbo.KPSource kps ON (bom.DB_CODICE_PADRE = kps.Item AND bom.DB_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 <> 0  OR kps.RD = 1 ))
 								JOIN KPRAKTOR.SIAPR.ANAMAG its ON (bom.DB_CODICE_FIGLIO = its.MG_CODICE AND bom.DB_DITTA = its.MG_DITTA)	
 								JOIN ZZZ_Italy.dbo.KPSource kpc ON (bom.DB_CODICE_FIGLIO = kpc.Item AND bom.DB_DITTA = 1 AND kps.Migrate = 1 AND kpc.Class NOT IN (4))
 								LEFT JOIN KPRAKTOR.dbo.TABESPLDB_F tac ON (itm.MG_DITTA = tac.TED_DITTA AND itm.MG_ESPL_DB = tac.TED_ESPL_DB)
@@ -321,9 +331,9 @@ FROM
 	LEFT JOIN ZZZ_Italy.dbo.BP_Conv bpc ON (itm.MG_CODFOR_PREF = bpc.KPraktor AND itm.MG_DITTA = 1)
 WHERE
 	itm.MG_CODFOR_PREF NOT LIKE ''
-	/* 21-07-2023 R&D added . RD is in POV1  */
--- 	and (kps.POV1 = 1 or kps.POV2 = 1 )
-	AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD = 1 )    
+/* 21-02-2024 : KL */
+--	AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD = 1 )    
+	AND (kps.POV1 <>  0  OR kps.RD = 1 )  
 	AND bpc.[Business Partner] IS NOT NULL
 
 UNION ALL
