@@ -391,8 +391,16 @@ SELECT
 	,2 AS OutboundInspection															/*Production - Outbound Inspection (tiipd001.iima) | FALSE | |	1;"Yes";2;"No" |*/
 	,2 AS CriticalForInventory															/*Production - Critical for Inventory (tiipf001.cick) |	FALSE | | 1;"Yes";2;"No" | */
 /* 19-07 */
-	,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06')  THEN 1 ELSE 2 END AS Phantom	/*Phantom (cpha) | FALSE | 2 |  |  | 1;"Yes";2;"No (default)"|*/
-	
+/* 04-03-2024 KL: Phantom change as in ItemsBYsite (by JVD)  , Changed Case Statement */ 
+--	,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06')  THEN 1 ELSE 2 END AS Phantom	/*Phantom (cpha) | FALSE | 2 |  |  | 1;"Yes";2;"No (default)"|*/
+    , CASE 
+        WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+        WHEN kps.SupplySource = 50 THEN 2
+        WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+        ELSE 2
+    END AS Phantom			
+
+
 	,2 AS UsePhantomInventory															/*Use Phantom Inventory (phst) | FALSE | 2 |  |  | 1;"Yes";2;"No (default)"|*/
 	,0 AS ScrapFactor																	/*Scrap Factor (scpf) | FALSE | 0 |  |  | |*/
 	,0 AS ScrapQuantity																	/*Scrap Quantity (scpq) | FALSE | 0 |  |  | |*/
