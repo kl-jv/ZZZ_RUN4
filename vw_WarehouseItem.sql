@@ -8,21 +8,21 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
------------------    Warehouse fixed values replaced by scm.values : OPEN  : REMOVE the FIXED WAREHOUSE IN SELECT -------------------
------------------    												 OPEN : Warehouse_scm has to be changed to Warehouse ------------
------------------  													 OPEN : Remove öld"Phantom lines                     ------------
+-----------------    Warehouse fixed values replaced by scm.values : DONE 04-03-2024 : REMOVE the FIXED WAREHOUSE IN SELECT -------------------
+-----------------    												 DONE 04-03-2024 : Warehouse_scm has to be changed to Warehouse ------------
+-----------------  													 DONE : Remove old  Phantom lines                     ------------
 -----------------    Full view cannot be run (yet) , just the part until the SUBCONTRACTOR WAREHOUSES IT.EXT.01   ALL COMMENTED OUT       ------------
 
-ALTER VIEW [dbo].[vw_WarehouseItem] AS 
+-- ALTER VIEW [dbo].[vw_WarehouseItem] AS 
 
 /* ----RAW MATERIAL WAREHOUSES ----*/
 
 
 /* IT0110 */ 
 SELECT
-	 CAST('IT0110' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses	ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
-/* 28-02-2024 KL: Get warehouse from ZZZ_Italy.dbo.SCModelMap */ 									/*Warehouse (cwar)  Reference to tcmcs003 Warehouses	ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
-	,CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse_scm
+/* 28-02-2024 KL: Get warehouse from ZZZ_Italy.dbo.SCModelMap */ 									
+--	 CAST('IT0110' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses	ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+	CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse													/*Warehouse (cwar)  Reference to tcmcs003 Warehouses	ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
 
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS Project														/*Project segment of Item (item)  Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS Item														/*Item (item)  Reference to whwmd400 Items | TRUE | null | 38 | |*/
@@ -52,7 +52,6 @@ FROM
 --	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV1 = 1)
 	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.POV1 = 2 )
 	LEFT JOIN KPRAKTOR.SIAPR.ANAGES pla ON (itm.MG_CODICE = pla.GE_CODICE_ART AND itm.MG_DITTA = pla.GE_DITTA)
-
 /* 28-02-2024 KL:  JOIN to Map warehouse to warehouse from ZZZ_Italy.dbo.SCModelMap (scm) */ 
 	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV1 = scm.POV1 AND scm.Site = 'IT.POV.01')
 
@@ -62,17 +61,13 @@ FROM
 				 itm.MG_CODICE
 				,itm.MG_DITTA
 
-
-				,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom
-
-
-
+/* 04-03-2024 KL :  Phantom replaced by Case Stament Jack */ 
 		, CASE 
 				WHEN kps.Itemgroup = 'DPMTO1' THEN 2
 				WHEN kps.SupplySource = 50 THEN 2
 				WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
 				ELSE 2
-			END AS Phantom_new 												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+			END AS Phantom 												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 
 
 			FROM
@@ -140,9 +135,9 @@ UNION ALL
 
 
  SELECT
-	 CAST('ITE100' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses                                                                         ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
-
-	,CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse_scm
+ /* 04-03-2024 -02-2024 KL: Get warehouse from ZZZ_Italy.dbo.SCModelMap */ 
+--	 CAST('ITE100' AS VARCHAR(6)) AS Warehouse														
+	,CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse													/*Warehouse (cwar)  Reference to tcmcs003 Warehouses   ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
 
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS Project														/*Project segment of Item (item)  Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS Item														/*Item (item)  Reference to whwmd400 Items | TRUE | null | 38 | |*/
@@ -175,7 +170,14 @@ FROM
 			SELECT
 				 itm.MG_CODICE
 				,itm.MG_DITTA
-				,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom
+
+/* 04-03-2024 KL :  Phantom replaced by Case Stament Jack */ 
+				, CASE 
+						WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+						WHEN kps.SupplySource = 50 THEN 2
+						WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+						ELSE 2
+					END AS Phantom 												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 			FROM
 				KPRAKTOR.SIAPR.ANAMAG itm
 				LEFT JOIN
@@ -228,10 +230,9 @@ UNION ALL
 /* IT0210 */ 
 
 SELECT
-	 CAST('IT0210' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses                                                                         ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
-/* 29-02-2024 KL: Get warhouse from ZZZ_Italy.dbo.SCModelMap */ 									/*Warehouse (cwar)  Reference to tcmcs003 Warehouses	ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
-	,CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse_scm
-
+ /* 04-03-2024 -02-2024 KL: Get warehouse from ZZZ_Italy.dbo.SCModelMap */ 
+-- 	 CAST('IT0210' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses    ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+	 CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS Project														/*Project segment of Item (item)  Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS Item														/*Item (item)  Reference to whwmd400 Items | TRUE | null | 38 | |*/
 	,CAST(2 AS FLOAT) AS UseItemOrderingData														/*Use Item Ordering data (uidt) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
@@ -270,16 +271,13 @@ FROM
 				 itm.MG_CODICE
 				,itm.MG_DITTA
 
-
-				,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom
-
-/* 29-02-2024 KL:  Phantom based on ItemGroup , SuppluSource  */ 
+/* 04-03-2024 KL :  Phantom replaced by Case Stament Jack */ 
 				, CASE 
 						WHEN kps.Itemgroup = 'DPMTO1' THEN 2
 						WHEN kps.SupplySource = 50 THEN 2
 						WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
 						ELSE 2
-					END AS Phantom_new 		
+					END AS Phantom		
 
 			FROM
 				KPRAKTOR.SIAPR.ANAMAG itm
@@ -335,10 +333,9 @@ UNION ALL
 /* ----SPARE PARTS WAREHOUSE ---*/
 /* IT0300 */ 
 SELECT
-	 CAST('IT0300' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses                                                                         ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
-/* 28-02-2024 KL: Get warehouse from ZZZ_Italy.dbo.SCModelMap */ 									/*Warehouse (cwar)  Reference to tcmcs003 Warehouses	ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
-	,CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse_scm
-
+ /* 04-03-2024 -02-2024 KL: Get warehouse from ZZZ_Italy.dbo.SCModelMap */ 
+--	 CAST('IT0300' AS VARCHAR(6)) AS Warehouse														/*Warehouse (cwar)  Reference to tcmcs003 Warehouses  ERPLN table: whwmd210, whwmd215, whwmd216 | TRUE | null | 6 | |*/
+	 CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse
 	,CAST('PROJEMPTY' AS VARCHAR(9)) AS Project														/*Project segment of Item (item)  Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY". | TRUE | "PROJEMPTY" | 9 | |*/
 	,CAST(kps.ItemLnCE AS VARCHAR(38)) AS Item														/*Item (item)  Reference to whwmd400 Items | TRUE | null | 38 | |*/
 	,CAST(2 AS FLOAT) AS UseItemOrderingData														/*Use Item Ordering data (uidt) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
@@ -373,14 +370,13 @@ FROM
 			SELECT
 				 itm.MG_CODICE
 				,itm.MG_DITTA
-				,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06')  THEN 1 ELSE 2 END AS Phantom
-
-		, CASE 
-				WHEN kps.Itemgroup = 'DPMTO1' THEN 2
-				WHEN kps.SupplySource = 50 THEN 2
-				WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
-				ELSE 2
-			END AS Phantom_new 												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+/* 04-03-2024 KL :  Phantom replaced by Case Stament Jack */ 
+				, CASE 
+						WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+						WHEN kps.SupplySource = 50 THEN 2
+						WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+						ELSE 2
+					END AS Phantom 												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 
 			FROM
 				KPRAKTOR.SIAPR.ANAMAG itm
@@ -573,7 +569,13 @@ FROM
 			SELECT
 				 itm.MG_CODICE
 				,itm.MG_DITTA
-				,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom
+/* 04-03-2024 KL :  Phantom replaced by Case Stament Jack */ 
+				, CASE 
+						WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+						WHEN kps.SupplySource = 50 THEN 2
+						WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+						ELSE 2
+					END AS Phantom 												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
 			FROM
 				KPRAKTOR.SIAPR.ANAMAG itm
 				LEFT JOIN
@@ -754,7 +756,14 @@ FROM
 			SELECT
 				 itm.MG_CODICE
 				,itm.MG_DITTA
-				,CASE WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom
+/* 04-03-2024 KL :  Phantom replaced by Case Stament Jack */ 
+				, CASE 
+						WHEN kps.Itemgroup = 'DPMTO1' THEN 2
+						WHEN kps.SupplySource = 50 THEN 2
+						WHEN itm.MG_GEST_PROD = 'I' AND itm.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+						ELSE 2
+					END AS Phantom 												/*Production - Phantom (tiipf051.cpha) (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No (default)"|*/
+
 			FROM
 				KPRAKTOR.SIAPR.ANAMAG itm
 				LEFT JOIN
