@@ -14,8 +14,7 @@ GO
 
 
 
-
-ALTER VIEW [dbo].[vw_ItemsBySite] AS
+-- ALTER VIEW [dbo].[vw_ItemsBySite] AS
 
 /* UNION SELECTION IT.POV.01 */
 
@@ -180,12 +179,7 @@ SELECT
 	,0 AS ReorderPoint										/*Ordering - Reorder Point (tcibd250.reop) (HYVA) | FALSE | 0 |  | |*/
 
 /* ATTENTION : TO BE REPLACED BY EMPLOYEE TABLE */
-
-
-
-
 --	,CAST(NULL AS VARCHAR(9)) AS Planner					/*Ordering - Planner (tcibd250.cplb) - Reference to tccom001 Employees (HYVA) | FALSE | null | 9 | |*/
-
 --	, MAP.KPraktorSupplier
 --	, map.KpraktorPlanner
 
@@ -194,8 +188,6 @@ SELECT
 --	, mab.KPraktorSupplier
 --	, mab.KpraktorBuyer  AS Buyer	
 --	, mab.LN_Employee_Buyer AS LN_buyer
-
-
 
 
 	,2 AS LotSizeCalculationAllowed							/*Ordering - Lot Size Calculation Allowed (tcibd250.auso)  (HYVA) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
@@ -215,8 +207,6 @@ SELECT
    		 END
     AS FLOAT
 	) AS PurchasePrice								/*Purchase Price (tdipu081.prip) | FALSE | 0 |  | |*/
-
-
 
 
 /* Check Purchase Units */
@@ -424,18 +414,18 @@ FROM
 	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND (kps.POV1 <> 0))
 	LEFT JOIN KPRAKTOR.SIAPR.ANAGES pla ON (itm.MG_CODICE = pla.GE_CODICE_ART AND itm.MG_DITTA = pla.GE_DITTA)
 	LEFT JOIN ZZZ_Italy.dbo.BP_Conv bpc ON (itm.MG_CODFOR_PREF = bpc.KPraktor AND itm.MG_DITTA = 1)
-	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 0)
-	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 1)
+/*  06-03-2024 KL : RN2 has been deleted from PurchasePrices , deleted RN2 from JOIN */ 
+	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND  pup.Subcontract = 0)
+	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND   pup.Subcontract = 1)
 
 /* 27-02-2024 KL: ProductType table has become SelectionCode with field SelectionCode instead of ProductType */
 -- 	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
 	LEFT JOIN ZZZ_Italy.dbo.SelectionCode sec ON (itm.MG_TIP_REC = sec.Code AND itm.MG_DITTA = 1)
-
-
-
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)
 	/* ---- Added 2024/02/14 ----  */
+	
 	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV1 = scm.POV1 AND scm.Site = 'IT.POV.01')
+
 	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] mab ON ( mab.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
 	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] map ON ( map.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
 	LEFT JOIN
@@ -850,16 +840,19 @@ FROM
 	JOIN ZZZ_Italy.dbo.KPSourceSP kpp ON (kps.Item = kpp.Item)
 	LEFT JOIN KPRAKTOR.SIAPR.ANAGES pla ON (itm.MG_CODICE = pla.GE_CODICE_ART AND itm.MG_DITTA = pla.GE_DITTA)
 	LEFT JOIN ZZZ_Italy.dbo.BP_Conv bpc ON (itm.MG_CODFOR_PREF = bpc.KPraktor AND itm.MG_DITTA = 1)
-	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 0)
-	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 1)
+/*  06-03-2024 KL : RN2 has been deleted from PurchasePrices , deleted RN2 from JOIN */ 	
+	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND  pup.Subcontract = 0)
+	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND  pup.Subcontract = 1)
 
 /* 27-02-2024 KL: ProductType tabel has become SelectionCode with files SelectionCode instead of ProductType */
 --	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
 	LEFT JOIN ZZZ_Italy.dbo.SelectionCode sec ON (itm.MG_TIP_REC = sec.Code AND itm.MG_DITTA = 1)
 
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)
+
 	/* ---- Added 2024/02/14 ----  */
 	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV3 = scm.POV3 AND scm.Site = 'IT.POV.03')
+
 	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] mab ON ( mab.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
 	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] map ON ( map.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
 
@@ -913,9 +906,13 @@ FROM
 					)bom ON (kps.Item = bom.Item)
 		)bol ON (kps.Item = bol.item)
 
+
+-- PART 3   DISABLED   06-03-2024 Waiting Subcontracting 
+/*  DISABLE START  
+
 UNION ALL 
 
--- PART 3 
+
 /* UNION ALL FOR IT.EXT.01 (SUBCONTRACTED ITEMS AND COMPONENTS */
 
 SELECT
@@ -1077,17 +1074,16 @@ SELECT
 	, CAST(
 			CASE 
 				WHEN sub.MainItem = 1 THEN bpc.POV1 
-				WHEN kps.POV1 = 1 THEN 'IT0110'
+/* 06-03-2024 KL :  Kps.POV1 values changed   POV1 = 2 = IT0110 , POV1 = 3 = IT0210            POV2 and RD  NOT valid anymore  */ 
+			--	WHEN kps.POV1 = 1 THEN 'IT0110'
+				WHEN kps.POV1 = 2 THEN 'IT0110'
+				WHEN kps.POV1 = 3 THEN 'IT0210'
 			-- 	WHEN kps.POV2 = 1 THEN 'IT0210'
 				WHEN kps.POV3 = 1 THEN 'IT0300'
 			-- 	WHEN kps.RD = 1 THEN 'ITE100'
 				ELSE 'IT0110'  
 			END AS  VARCHAR(6)
 		) AS OrderingWarehouse								/*Ordering - Warehouse (tcibd250.cwar) - Reference to tcmcs003 Warehouses ** Mandatory for item ordering by Site | FALSE | null | 6 | |*/
-
-
-
-
 
 
 	,1 AS OrderMethod										/*Ordering - Order Method (tcibd250.omth) (HYVA) | FALSE | 1 |  | 1;"Lot for Lot (default)";2;"Economic Order Quantity";3;"Fixed Order Quantity";4;"Replenish to MAX.Inv."|*/
@@ -1145,7 +1141,10 @@ SELECT
 	, CAST(
 			CASE 
 				WHEN sub.MainItem = 1 THEN bpc.POV1 
-				WHEN kps.POV1 = 1 THEN 'IT0110'
+/* 06-03-2024 KL :  Kps.POV1 values changed   POV1 = 2 = IT0110 , POV1 = 3 = IT0210            POV2 and RD  NOT valid anymore  */ 
+--				WHEN kps.POV1 = 1 THEN 'IT0110'
+
+
 	       	--	WHEN kps.POV2 = 1 THEN 'IT0210'
 				WHEN kps.POV3 = 1 THEN 'IT0300'
 			--  WHEN kps.RD = 1 THEN 'ITE100'
@@ -1216,7 +1215,10 @@ SELECT
 	,CAST(
 		CASE 
 			WHEN sub.MainItem = 1 THEN bpc.POV1 
-			WHEN kps.POV1 = 1 THEN 'IT0110'
+/* 07-03-2024 KL :  Kps.POV1 values changed   POV1 = 2 = IT0110 , POV1 = 3 = IT0210            POV2 and RD  NOT valid anymore  */ 
+		--	WHEN kps.POV1 = 1 THEN 'IT0110'
+			WHEN kps.POV1 = 2 THEN 'IT0110'
+			WHEN kps.POV1 = 3 THEN 'IT0210'
 		-- 	WHEN kps.POV2 = 1 THEN 'IT0210'
 			WHEN kps.POV3 = 1 THEN 'IT0300'
 		--  WHEN kps.RD = 1 THEN 'ITE100'
@@ -1419,7 +1421,10 @@ FROM
 /* 27-02-2024 KL:  Remove POV2 and RD  */ 
 								, CAST(
 								  	CASE
-										WHEN kps.POV1 = 1 THEN 'IT0110'
+/* 07-03-2024 KL :  Kps.POV1 values changed   POV1 = 2 = IT0110 , POV1 = 3 = IT0210            POV2 and RD  NOT valid anymore  */ 
+									--	WHEN kps.POV1 = 1 THEN 'IT0110'
+										WHEN kps.POV1 = 2 THEN 'IT0110'
+										WHEN kps.POV1 = 3 THEN 'IT0210'
 									--	WHEN kps.POV2 = 1 THEN 'IT0210'
 										WHEN kps.POV3 = 1 THEN 'IT0300'
 									--	WHEN kps.RD = 1 THEN 'ITE100'
@@ -1438,7 +1443,9 @@ FROM
 							WHERE
 								bom.DB_DATA_FIN_VAL >= CONVERT(INT,GETDATE())
 								AND kps.SupplySource IN ('50')
-								AND (kps.POV1 = 1 OR kps.POV2 = 1)
+/* 07-03-2024 KL: POV1  <> 0 , POV2 NOT VALID ANYMORE */ 
+--								AND (kps.POV1 = 1 OR kps.POV2 = 1)   
+								AND (kps.POV1 = 1 OR kps.POV2 = 1)        -- POV1 <> 0
 								AND bpc.[Business Partner] IS NOT NULL
 						)sub
 
@@ -1471,7 +1478,10 @@ FROM
 /* 27-02-2024 KL:  Remove POV2 and RD  */
 								, CAST(
 								  		CASE
-											WHEN kps.POV1 = 1 THEN 'IT0110'
+/* 07-03-2024 KL :  Kps.POV1 values changed   POV1 = 2 = IT0110 , POV1 = 3 = IT0210            POV2 and RD  NOT valid anymore  */
+										--	WHEN kps.POV1 = 1 THEN 'IT0110'
+											WHEN kps.POV1 = 2 THEN 'IT0110'
+											WHEN kps.POV1 = 3 THEN 'IT0210'
 										--	WHEN kps.POV2 = 1 THEN 'IT0210'
 											WHEN kps.POV3 = 1 THEN 'IT0300'
 										--	WHEN kps.RD = 1 THEN 'ITE100'
@@ -1490,22 +1500,27 @@ FROM
 							WHERE
 								bom.DB_DATA_FIN_VAL >= CONVERT(INT,GETDATE())
 								AND kps.SupplySource IN ('50')
-								AND (kps.POV1 = 1 OR kps.POV2 = 1)
+/* 07-03-2024 KL: POV1 <> 0 , POV2 Not valid anymore */ 
+--								AND (kps.POV1 = 1 OR kps.POV2 = 1)
+								AND (kps.POV1 <> 0 )
 								AND bpc.[Business Partner] IS NOT NULL
 						)sub
 				)sub
 		)sub ON (kps.ItemLnCE = sub.ItemLnCE AND kps.Migrate IN (0,1))
 	LEFT JOIN KPRAKTOR.SIAPR.ANAGES pla ON (itm.MG_CODICE = pla.GE_CODICE_ART AND itm.MG_DITTA = pla.GE_DITTA)
 	LEFT JOIN ZZZ_Italy.dbo.BP_Conv bpc ON (itm.MG_CODFOR_PREF = bpc.KPraktor AND itm.MG_DITTA = 1)
-	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 0)
-	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 1)
+
+/*  06-03-2024 KL : RN2 has been deleted from PurchasePrices , deleted RN2 from JOIN */ 
+
+	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1  AND pup.Subcontract = 0)
+	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1  AND pup.Subcontract = 1)
 /* 27-02-2024 KL ProductType table has become SelectionCode with field SelectionCode instead of ProductType */
 --	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
 	LEFT JOIN ZZZ_Italy.dbo.SelectionCode sec ON (itm.MG_TIP_REC = sec.Code AND itm.MG_DITTA = 1)
 
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)
 	/*---- Added 20240214 JVD ----*/
-	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV1 = scm.POV1 AND scm.Site = 'IT.EXT.01')
+	LEFT JOIN ZZZ_Italy.dbo.SCModelMap scm ON (kps.POV1 = scm.POV1 AND scm.Site = 'IT.EXT.01')                  -- TO CHANGE SCM has now more Values than KPS !!!!
 	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] mab ON ( mab.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
 	LEFT JOIN [ZZZ_Italy].[dbo].[MappingPlannerBuyer] map ON ( map.KPraktorSupplier = itm.MG_CODFOR_PREF ) 
 
@@ -2000,8 +2015,8 @@ FROM
 		)sub ON (kps.ItemLnCE = sub.ItemLnCE AND kps.Migrate IN (1))
 	LEFT JOIN KPRAKTOR.SIAPR.ANAGES pla ON (itm.MG_CODICE = pla.GE_CODICE_ART AND itm.MG_DITTA = pla.GE_DITTA)
 	LEFT JOIN ZZZ_Italy.dbo.BP_Conv bpc ON (itm.MG_CODFOR_PREF = bpc.KPraktor AND itm.MG_DITTA = 1)
-	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 0)
-	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND pup.RN2 = 1 AND pup.Subcontract = 1)
+	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pup ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND  pup.Subcontract = 0)
+	LEFT JOIN ZZZ_Italy.dbo.PurchasePrices pus ON (itm.MG_CODICE =  pup.Item AND itm.MG_DITTA = 1 AND  pup.Subcontract = 1)
 /* 27-02-2024 KL ProductType table has become SelectionCode with field SelectionCode instead of ProductType */
 --	LEFT JOIN ZZZ_Italy.dbo.ProductType prt ON (itm.MG_TIP_REC = prt.Code AND itm.MG_DITTA = 1)
 	LEFT JOIN ZZZ_Italy.dbo.SelectionCode sec ON (itm.MG_TIP_REC = sec.Code AND itm.MG_DITTA = 1)
@@ -2063,6 +2078,9 @@ FROM
 							bom.DB_CODICE_PADRE
 					)bom ON (kps.Item = bom.Item)
 		)bol ON (kps.Item = bol.item)
+
+
+*/  --- DISABLE END 
 GO
 
 
