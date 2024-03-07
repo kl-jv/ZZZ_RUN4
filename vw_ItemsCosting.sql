@@ -1,7 +1,7 @@
 USE [ZZZ_RUN4]
 GO
 
-/****** Object:  View [dbo].[vw_ItemsCosting]    Script Date: 20/12/2023 12:00:48 ******/
+/****** Object:  View [dbo].[vw_ItemsCosting]    Script Date:  07-03-2024 */ 
 SET ANSI_NULLS ON
 GO
 
