@@ -1,7 +1,7 @@
 USE [ZZZ_RUN4]
 GO
 
-/****** Object:  View [dbo].[vw_ItemsPlanning]    Script Date: 20/12/2023 12:01:47 ******/
+/****** Object:  View [dbo].[vw_ItemsPlanning]    Script Date: 07-03-2024 9:36 AM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -9,7 +9,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
--- ALTER VIEW [dbo].[vw_ItemsPlanning] AS
+ALTER VIEW [dbo].[vw_ItemsPlanning] AS
 
 SELECT
 	 CAST('PROJEMPTY' AS VARCHAR(9)) AS Project					/*Project segment of Item (item)   - Reference to tcmcs052 General Projects. If Project field not used then fill field with "PROJEMPTY".                                                      ERPLN table: cprpd100 | TRUE | "PROJEMPTY" | 9 | |*/
