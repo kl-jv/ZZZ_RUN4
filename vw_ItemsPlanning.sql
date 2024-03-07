@@ -185,8 +185,9 @@ SELECT
 /*	,CAST(CASE WHEN kps.POV3 = 1 THEN 'IT0300'
 		ELSE 'IT0300'
 		END AS VARCHAR(6)) AS Warehouse							/*Warehouse (cprpd100.cwar)   - Reference to tcmcs003 Warehouses | TRUE | null | 6 | |*/
-	, CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse	
 */ 
+	, CAST(scm.warehouse AS VARCHAR(6)) AS Warehouse	
+
 	,CAST('IT.POV.03' AS VARCHAR(9)) AS OrderingSite			/*Site (cprpd100.site) - Reference to tcemm050 Sites | FALSE | null | 9 | |*/
 	,1 AS SupplySource											/*Default Supply Source (cprpd100.sour) | FALSE | 1 |  | 1;"Production/Purchase";2;"Distribution"|*/
 	,9 AS PlanLevel												/*Plan Level (cprpd100.plvl) | TRUE | 1 |  | |*/
