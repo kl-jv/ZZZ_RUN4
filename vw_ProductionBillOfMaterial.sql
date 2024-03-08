@@ -1,12 +1,14 @@
 USE [ZZZ_RUN4]
 GO
 
-/****** Object:  View [dbo].[vw_ProductionBillOfMaterial]    Script Date: 20/12/2023 12:38:46 ******/
+/****** Object:  View [dbo].[vw_ProductionBillOfMaterial]    Script Date: 3/8/2024 10:43:05 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
+
 
 
 
@@ -53,7 +55,12 @@ SELECT
 	,0 AS Width																/*Width (timfc310.widt) Can only be filled when unit is of type lenght or area. Default = 0 | FALSE | 0 |  | |*/
 	,CAST(NULL AS VARCHAR(3))AS SizeUnit									/*Size Unit (timfc310.sizu) - references to tcmcs001 | FALSE |  | 3 | |*/
 	,0 AS NumberOfUnits														/*Number of Units (timfc310.noun) The required quantity of the material, expressed as the number of units of specified length and width. Default = 0 | FALSE | 0 |  | |*/
-	,CASE WHEN its.MG_GEST_PROD = 'I' AND its.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 ELSE 2 END AS Phantom		/*Phantom (timfc310.cpha) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
+	,CASE WHEN (kps.ItemGroup = 'DPMTO1' OR kps.SupplySource = 50) THEN 2
+		ELSE
+			CASE WHEN its.MG_GEST_PROD = 'I' AND its.MG_ESPL_DB IN ('00','01','02','03','06') THEN 1 
+				ELSE 2 
+				END 
+		END AS Phantom														/*Phantom (timfc310.cpha) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
 	,2 AS InheritDemandPeg													/*Inherit Demand Peg (timfc310.idpg) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
 	,2 AS AllowMultipleItems												/*Allow Multiple Items (timfc310.almi) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
 	,2 AS AlternativesPresent												/*Alternatives Present (timfc310.altp) | FALSE | 2 |  | 1;"Yes";2;"No"|*/
