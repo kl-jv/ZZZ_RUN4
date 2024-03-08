@@ -1,12 +1,14 @@
 USE [ZZZ_RUN4]
 GO
 
-/****** Object:  View [dbo].[vw_ItemsByOffice]    Script Date: 3/1/2024 1:46:50 PM ******/
+/****** Object:  View [dbo].[vw_ItemsByOffice]    Script Date: 3/8/2024 10:38:29 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
+
 
 
 
@@ -80,9 +82,7 @@ FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
 /*  21-02-2024 : KL POV1 <> 0 ,  Remove POV2 , RD must be kept  */
 --	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999') AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD=1))
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999') AND (kps.POV1 <> 0 OR  kps.RD=1))
-
-
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999') AND (kps.POV1 <> 0))
 	LEFT JOIN ZZZ_Italy.dbo.StatisticsGroep_Conv stc ON (itm.MG_TIP_REC = stc.ProductType AND itm.MG_DITTA = 1)
 
 UNION ALL
@@ -237,7 +237,7 @@ FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
 	/* 21-02-2024 : KL POV1 <> 0 ,  Remove POV2 , RD must be kept  */
 --	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD=1))
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 <> 0 OR  kps.RD=1))
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 <> 0 ))
 
 UNION ALL
 
@@ -316,7 +316,7 @@ FROM
 
 /* 21-02-2024 : KL POV1 <> 0 ,  Remove POV2 , RD must be kept  */
 --	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD=1))
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 <> 0 OR kps.RD=1))
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 <> 0))
 
 
 UNION ALL
@@ -396,7 +396,7 @@ FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
 /* 21-02-2024 : KL POV1 <> 0 ,  Remove POV2 , RD must be kept  */
 --	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD=1))
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 <> 0 OR kps.RD=1))
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 <> 0))
 
 ---------------------------------------- END IT1220  SLS Amco Veba Italy POV , H.C.E. S.r.l.  -----
 
@@ -477,7 +477,7 @@ FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
 /* 21-02-2024 : KL POV1 <> 0 ,  Remove POV2 , RD must be kept  */
 --	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD=1))
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 <> 0  OR kps.RD=1))
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('PHMAN2','PI9999','TOGEN1') AND (kps.POV1 <> 0))
 
 
 ---------------------------------------- END IT1221 Sales Office Amco Veba MARINE
@@ -1058,7 +1058,7 @@ FROM
 	KPRAKTOR.SIAPR.ANAMAG itm
 /* 21-02-2024 : KL POV1 <> 0 ,  Remove POV2 , RD must be kept  */
 --	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('COGEN1','COMAN2','GEKIT6','PHMAN2','PHSAL1','PI9999','CI0001','COFLS4') AND (kps.POV1 = 1 OR kps.POV2 = 1 OR kps.RD=1))
-	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('COGEN1','COMAN2','GEKIT6','PHMAN2','PHSAL1','PI9999','CI0001','COFLS4') AND (kps.POV1 <> 0 OR kps.RD=1))
+	JOIN ZZZ_Italy.dbo.KPSource kps ON (itm.MG_CODICE = kps.Item AND itm.MG_DITTA = 1 AND kps.Migrate = 1 AND kps.ItemGroup NOT IN ('COGEN1','COMAN2','GEKIT6','PHMAN2','PHSAL1','PI9999','CI0001','COFLS4') AND (kps.POV1 <> 0 ))
 
 /* ---------------------------------------- END  IT3221  Service Office Amco Veba MARINE   -----*/
 
